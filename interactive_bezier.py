@@ -15,7 +15,8 @@ def signal(amp, freq):
 
 axis_color = "lightgoldenrodyellow"
 
-fig = plt.figure()
+fig = plt.figure("Bezier Closed Curve Generator")
+fig.suptitle("Interactive Random Bezier Closed Curve Generator", fontsize=12)
 ax = fig.add_subplot(111)
 
 # Adjust the subplots region to leave some space for the sliders and buttons
@@ -114,6 +115,18 @@ def save_button_on_clicked(mouse_event):
         bbox_inches=bbox.transformed(fig.dpi_scale_trans.inverted()),
     )
     ax.axis("on")
+
+
+save_button.on_clicked(save_button_on_clicked)
+
+
+reset_button_ax = fig.add_axes([0.85, 0.5, 0.1, 0.08])
+reset_button = Button(
+    reset_button_ax, "Reset", color="lawngreen", hovercolor="darkgreen"
+)
+
+
+def reset_button_on_clicked(mouse_event):
     rad_slider.reset()
     edgy_slider.reset()
     c0_slider.reset()
@@ -122,7 +135,7 @@ def save_button_on_clicked(mouse_event):
     points_slider.reset()
 
 
-save_button.on_clicked(save_button_on_clicked)
+reset_button.on_clicked(reset_button_on_clicked)
 
 fill_radios_ax = fig.add_axes([0.025, 0.5, 0.15, 0.15], facecolor=axis_color)
 fill_radios = RadioButtons(fill_radios_ax, ("No fill", "Fill"), active=0)
