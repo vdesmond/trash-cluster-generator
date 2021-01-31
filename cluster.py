@@ -5,7 +5,6 @@ import scipy.stats as stats
 import glob
 from rotateimg import *
 
-blablabla = 1
 PATH = "../pngs"
 PATCH_SIZE = 1000
 NUM_IMAGES = 5
