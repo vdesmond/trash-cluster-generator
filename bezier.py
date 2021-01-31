@@ -1,9 +1,8 @@
 import numpy as np
-import cv2
 from scipy.special import binom
 import matplotlib.pyplot as plt
 import os
-import random
+
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 
@@ -83,7 +82,11 @@ def get_bezier_curve(a, rad=0.2, edgy=0):
     return x, y, a
 
 
-def get_random_points(n=5, scale=0.8, mindst=None, rec=0):
+def get_random_points(seeder, n=5, scale=2, mindst=None, rec=0):
+    if seeder > 0:
+        np.random.seed(seeder)
+    else:
+        pass
     """create n random points in the unit square, which are *mindst*
     apart, then scale them."""
     mindst = mindst or 0.7 / n
@@ -92,22 +95,24 @@ def get_random_points(n=5, scale=0.8, mindst=None, rec=0):
     if np.all(d >= mindst) or rec >= 200:
         return a * scale
     else:
-        return get_random_points(n=n, scale=scale, mindst=mindst, rec=rec + 1)
+        return get_random_points(seeder, n=n, scale=scale, mindst=mindst, rec=rec + 1)
 
 
-fig, ax = plt.subplots()
-ax.set_aspect("equal")
+def bezier_plot(i, fill=True, rad=0.5, edgy=0.05):
+    c = [0, 1]
+    a = get_random_points(seeder=0, n=4, scale=10) + c
+    x, y, _ = get_bezier_curve(a, rad=rad, edgy=edgy)
+    fig = plt.figure(figsize=(12, 12))
+    if fill:
+        fig = plt.figure(figsize=(12, 12))
+        plt.fill(x, y, "k")
+        # plt.plot(x, y, "k")
+        plt.axis("off")
+        fig.savefig(os.path.join(os.getcwd(), "Bezier-fill"), bbox_inches="tight")
+        plt.clf()
 
-rad = 0.5
-edgy = 0.05
-
-# for c in np.array([[0,0], [0,1], [1,0], [1,1]]):
-c = [0, 1]
-a = get_random_points(n=4, scale=10) + c
-x, y, _ = get_bezier_curve(a, rad=rad, edgy=edgy)
-fig = plt.figure(figsize=(12, 12))
-plt.plot(x, y, "k")
-plt.axis("off")
-fig.savefig(
-    os.path.join(os.getcwd(), f"bezier{random.randint(1,1000)}"), bbox_inches="tight"
-)
+    plt.plot(x, y, "k")
+    plt.xlim((-5, 15))
+    plt.ylim((-2, 18))
+    # plt.axis("off")
+    fig.savefig(os.path.join(os.getcwd(), f"Bezier-{i}"), bbox_inches="tight")
