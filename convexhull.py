@@ -54,7 +54,7 @@ def show(img, name: str):
 
 
 def convex_hull_image(img, thickness=1):
-    img_copy = img.copy()
+    img_copy = cv2.cvtColor(img.copy(), cv2.COLOR_RGB2GRAY)
     thresholded = binary_thresh(img_copy)
     contours = contour_finder(thresholded)
     drawing = convex_hull_gen(img_copy, contours, thickness=thickness)

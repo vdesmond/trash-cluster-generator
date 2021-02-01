@@ -126,5 +126,5 @@ def update_position(x_offset, y_offset, img, bg):
 if __name__ == "__main__":
     no_update = False
     png_list = glob.glob(PATH + "/*")
-    cluster_image = cluster_maker(PATCH_SIZE, png_list, NUM_IMAGES)
+    cluster_image = cluster_maker(PATCH_SIZE, png_list, NUM_IMAGES, no_update=False)
     cv2.imwrite("result.png", cluster_image)

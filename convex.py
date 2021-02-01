@@ -1,10 +1,14 @@
 import cv2
 import numpy as np
 import glob
+import random
 
 
-def convex(imgpath):
-    image = cv2.imread(imgpath)
+def convex(imgpath=None, image=None):
+    if imgpath:
+        image = cv2.imread(imgpath)
+    else:
+        image = image
     img = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     ret, thresh = cv2.threshold(img, 127, 255, 0)
     img_raw = img
@@ -21,9 +25,11 @@ def convex(imgpath):
     uni_hull.append(hull)
     cv2.drawContours(image, uni_hull, -1, 255, 2)
 
-    cv2.imwrite(f"{imgpath[6:9]}-cnvx.png", image)
+    cv2.imwrite(f"{random.randint(1,1000)}-cnvx.png", image)
+    return image
 
 
-for path in glob.glob("*"):
-    if path[-3:] == "png":
-        convex(path)
+if __name__ == "__main__":
+    for path in glob.glob("*"):
+        if path[-3:] == "png":
+            convex(imgpath=path)
