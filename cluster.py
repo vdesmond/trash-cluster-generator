@@ -75,7 +75,7 @@ def image_saver(result):
     return final
 
 
-def cluster_maker(patch_size, png_list, num_images):
+def cluster_maker(patch_size, png_list, num_images, no_update):
     background = np.zeros((patch_size, patch_size, 3), np.uint8)
     result = background.copy()
     imlist = random.sample(png_list, num_images)

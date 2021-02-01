@@ -5,13 +5,7 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 from bezier import *
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
-
 fill_status = False
-
-
-def signal(amp, freq):
-    return amp * sin(2 * pi * freq * t)
-
 
 axis_color = "lightgoldenrodyellow"
 
@@ -19,19 +13,10 @@ fig = plt.figure("Bezier Closed Curve Generator")
 fig.suptitle("Interactive Random Bezier Closed Curve Generator", fontsize=12)
 ax = fig.add_subplot(111)
 
-# Adjust the subplots region to leave some space for the sliders and buttons
 fig.subplots_adjust(left=0.3, bottom=0.42)
-
-t = np.arange(0.0, 1.0, 0.001)
-amp_0 = 5
-freq_0 = 3
-
 
 rad = 0.5
 edgy = 0.5
-
-# Draw the initial plot
-# The 'line' variable is used for modifying the line later
 
 seeder = 1
 c = [-1, 1]
@@ -46,7 +31,13 @@ ax.set_xlim([-5, 15])
 ax.set_ylim([-5, 15])
 ax.set_aspect("equal", "box")
 [line] = ax.plot(x, y, linewidth=1, color="k")
-
+scatter_points = ax.scatter(
+    a[:, 0],
+    a[:, 1],
+    color="r",
+    marker=".",
+    alpha=1,
+)
 
 # Sliders
 rad_slider_ax = fig.add_axes([0.25, 0.32, 0.65, 0.03], facecolor=axis_color)
@@ -79,20 +70,27 @@ def sliders_on_changed(val):
         + c
     )
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
+    global scatter_points
     if not fill_status:
         ax.clear()
         ax.set_xlim([-5, 15])
         ax.set_ylim([-5, 15])
         ax.set_aspect("equal", "box")
         ax.plot(x, y, linewidth=1, color="k")
-        fig.canvas.draw_idle()
     else:
         ax.clear()
         ax.set_xlim([-5, 15])
         ax.set_ylim([-5, 15])
         ax.set_aspect("equal", "box")
         ax.fill(x, y, color="k")
-        fig.canvas.draw_idle()
+    scatter_points = ax.scatter(
+        a[:, 0],
+        a[:, 1],
+        color="r",
+        marker=".",
+        alpha=1,
+    )
+    fig.canvas.draw_idle()
 
 
 rad_slider.on_changed(sliders_on_changed)
@@ -108,6 +106,7 @@ save_button = Button(save_button_ax, "Save", color="lawngreen", hovercolor="dark
 
 
 def save_button_on_clicked(mouse_event):
+    scatter_points.remove()
     ax.axis("off")
     bbox = ax.get_tightbbox(fig.canvas.get_renderer())
     fig.savefig(
@@ -118,6 +117,7 @@ def save_button_on_clicked(mouse_event):
 
 
 save_button.on_clicked(save_button_on_clicked)
+save_button.on_clicked(sliders_on_changed)
 
 
 reset_button_ax = fig.add_axes([0.85, 0.5, 0.1, 0.08])
@@ -133,6 +133,7 @@ def reset_button_on_clicked(mouse_event):
     c1_slider.reset()
     scale_slider.reset()
     points_slider.reset()
+    seeder_slider.reset()
 
 
 reset_button.on_clicked(reset_button_on_clicked)
@@ -150,4 +151,5 @@ def fill_radios_on_clicked(label):
 
 
 fill_radios.on_clicked(fill_radios_on_clicked)
+fill_radios.on_clicked(sliders_on_changed)
 plt.show()
