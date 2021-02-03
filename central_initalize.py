@@ -31,10 +31,10 @@ def cluster_makerv2(patch_size, png_list, num_images, bezier_coordinates):
     background = np.zeros((patch_size, patch_size, 3), np.uint8)
     result = background.copy()
     imlist = random.sample(png_list, num_images)
-    x_offlist, y_offlist = [], []
+    # x_offlist, y_offlist = [], []
     for png in imlist:
         img = cv2.imread(png, -1)
         result, x_offset, y_offset = image_placerv2(img, result, bezier_coordinates)
-        x_offlist.append(x_offset)
-        y_offlist.append(y_offset)
+        # x_offlist.append(x_offset)
+        # y_offlist.append(y_offset)
     return result

@@ -5,6 +5,19 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 from bezier import *
 from central_initalize import *
 
+
+def savefig_numpy(fig):
+    io_buf = io.BytesIO()
+    fig.savefig(io_buf, format="raw", dpi=DPI)
+    io_buf.seek(0)
+    img_arr = np.reshape(
+        np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
+        newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1),
+    )
+    io_buf.close()
+    return img_arr
+
+
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 fill_status = False
 
@@ -76,6 +89,7 @@ def sliders_on_changed(val):
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
     cooordinates = np.array((x, y)).T
     centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
+    global a_new
     a_new = np.append(a, [centre], axis=0)
 
     global scatter_points
@@ -98,8 +112,6 @@ def sliders_on_changed(val):
         marker=".",
         alpha=1,
     )
-    cluster_image = cluster_makerv2(PATCH_SIZE, png_list, NUM_IMAGES, a_new)
-    ax_img.imshow(cluster_image)
     fig.canvas.draw_idle()
 
 
@@ -111,6 +123,7 @@ scale_slider.on_changed(sliders_on_changed)
 points_slider.on_changed(sliders_on_changed)
 seeder_slider.on_changed(sliders_on_changed)
 
+# -------------------------------------------------------------------- #
 save_button_ax = fig.add_axes([0.85, 0.05, 0.1, 0.06])
 save_button = Button(save_button_ax, "Save", color="lawngreen", hovercolor="darkgreen")
 
@@ -118,18 +131,25 @@ save_button = Button(save_button_ax, "Save", color="lawngreen", hovercolor="dark
 def save_button_on_clicked(mouse_event):
     # scatter_points.remove()
     ax_bez.axis("off")
-    bbox = ax_bez.get_tightbbox(fig.canvas.get_renderer())
+    ax_img.axis("off")
+    bbox_bez = ax_bez.get_tightbbox(fig.canvas.get_renderer())
+    bbox_img = ax_img.get_tightbbox(fig.canvas.get_renderer())
     fig.savefig(
         os.path.join(os.getcwd(), "Bezier"),
-        bbox_inches=bbox.transformed(fig.dpi_scale_trans.inverted()),
+        bbox_inches=bbox_bez.transformed(fig.dpi_scale_trans.inverted()),
     )
+    fig.savefig(
+        os.path.join(os.getcwd(), "Convexhull"),
+        bbox_inches=bbox_img.transformed(fig.dpi_scale_trans.inverted()),
+    )
+    ax_img.axis("on")
     ax_bez.axis("on")
 
 
 save_button.on_clicked(save_button_on_clicked)
 save_button.on_clicked(sliders_on_changed)
 
-
+# -------------------------------------------------------------------- #
 reset_button_ax = fig.add_axes([0.85, 0.12, 0.1, 0.06])
 reset_button = Button(
     reset_button_ax, "Reset", color="lawngreen", hovercolor="darkgreen"
@@ -147,7 +167,26 @@ def reset_button_on_clicked(mouse_event):
 
 
 reset_button.on_clicked(reset_button_on_clicked)
+reset_button.on_clicked(sliders_on_changed)
 
+# -------------------------------------------------------------------- #
+
+generate_button_ax = fig.add_axes([0.85, 0.19, 0.1, 0.06])
+generate_button = Button(
+    generate_button_ax, "Generate", color="lawngreen", hovercolor="darkgreen"
+)
+
+
+def generate_button_on_clicked(mouse_event):
+    cluster_image = cluster_makerv2(PATCH_SIZE, png_list, NUM_IMAGES, a_new)
+    ax_img.imshow(cluster_image)
+
+
+generate_button.on_clicked(sliders_on_changed)
+generate_button.on_clicked(generate_button_on_clicked)
+
+
+# -------------------------------------------------------------------- #
 fill_radios_ax = fig.add_axes([0.85, 0.5, 0.1, 0.15], facecolor=axis_color)
 fill_radios = RadioButtons(fill_radios_ax, ("No fill", "Fill"), active=0)
 
@@ -162,4 +201,6 @@ def fill_radios_on_clicked(label):
 
 fill_radios.on_clicked(fill_radios_on_clicked)
 fill_radios.on_clicked(sliders_on_changed)
+# -------------------------------------------------------------------- #
+
 plt.show()
