@@ -3,62 +3,69 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 from bezier import *
+from central_initalize import *
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 fill_status = False
 
 axis_color = "lightgoldenrodyellow"
 
-fig = plt.figure("Bezier Closed Curve Generator")
+fig = plt.figure("Bezier Closed Curve Generator", (14, 8))
 fig.suptitle("Interactive Random Bezier Closed Curve Generator", fontsize=12)
-ax = fig.add_subplot(111)
+ax_bez = fig.add_subplot(121)
+ax_img = fig.add_subplot(122)
 
-fig.subplots_adjust(left=0.3, bottom=0.42)
+fig.subplots_adjust(left=0.1, bottom=0.42, top=0.93, right=0.85)
 
 rad = 0.5
 edgy = 0.5
 
-seeder = 1
+seeder = 42
 c = [-1, 1]
 scale = 10
 points = 4
 
 a = get_random_points(seeder, n=points, scale=scale) + c
 x, y, _ = get_bezier_curve(a, rad=rad, edgy=edgy)
+cooordinates = np.array((x, y)).T
+centre = np.array([np.max(x) - np.min(x), np.max(y) - np.min(y)])
+print(PATH)
+print(centre)
+a_new = np.append(a, [cooordinates.mean(axis=0)], axis=0)
+ax_bez.set_xlim([-5, 15])
+ax_bez.set_ylim([-5, 15])
+ax_bez.set_aspect("equal", "box")
 
-
-ax.set_xlim([-5, 15])
-ax.set_ylim([-5, 15])
-ax.set_aspect("equal", "box")
-[line] = ax.plot(x, y, linewidth=1, color="k")
-scatter_points = ax.scatter(
-    a[:, 0],
-    a[:, 1],
+ax_img.set_aspect("equal", "box")
+[line] = ax_bez.plot(x, y, linewidth=1, color="k")
+scatter_points = ax_bez.scatter(
+    a_new[:, 0],
+    a_new[:, 1],
     color="r",
     marker=".",
     alpha=1,
 )
 
 # Sliders
-rad_slider_ax = fig.add_axes([0.25, 0.32, 0.65, 0.03], facecolor=axis_color)
+rad_slider_ax = fig.add_axes([0.15, 0.32, 0.65, 0.03], facecolor=axis_color)
 rad_slider = Slider(rad_slider_ax, "Radius", 0.0, 1.0, valinit=rad)
 
-edgy_slider_ax = fig.add_axes([0.25, 0.27, 0.65, 0.03], facecolor=axis_color)
+edgy_slider_ax = fig.add_axes([0.15, 0.27, 0.65, 0.03], facecolor=axis_color)
 edgy_slider = Slider(edgy_slider_ax, "Edginess", 0.0, 5.0, valinit=edgy)
 
-c0_slider_ax = fig.add_axes([0.25, 0.22, 0.65, 0.03], facecolor=axis_color)
+c0_slider_ax = fig.add_axes([0.15, 0.22, 0.65, 0.03], facecolor=axis_color)
 c0_slider = Slider(c0_slider_ax, "Move X", -5.0, 5.0, valinit=c[0])
 
-c1_slider_ax = fig.add_axes([0.25, 0.17, 0.65, 0.03], facecolor=axis_color)
+c1_slider_ax = fig.add_axes([0.15, 0.17, 0.65, 0.03], facecolor=axis_color)
 c1_slider = Slider(c1_slider_ax, "Move Y", -5.0, 5.0, valinit=c[1])
 
-scale_slider_ax = fig.add_axes([0.25, 0.12, 0.65, 0.03], facecolor=axis_color)
+scale_slider_ax = fig.add_axes([0.15, 0.12, 0.65, 0.03], facecolor=axis_color)
 scale_slider = Slider(scale_slider_ax, "Scale", 1.0, 20.0, valinit=scale)
 
-points_slider_ax = fig.add_axes([0.25, 0.07, 0.65, 0.03], facecolor=axis_color)
-points_slider = Slider(points_slider_ax, "Points", 1, 20, valinit=points, valfmt="%d")
+points_slider_ax = fig.add_axes([0.15, 0.07, 0.65, 0.03], facecolor=axis_color)
+points_slider = Slider(points_slider_ax, "Points", 3, 10, valinit=points, valfmt="%d")
 
-seeder_slider_ax = fig.add_axes([0.25, 0.02, 0.65, 0.03], facecolor=axis_color)
+seeder_slider_ax = fig.add_axes([0.15, 0.02, 0.65, 0.03], facecolor=axis_color)
 seeder_slider = Slider(seeder_slider_ax, "Seed", 1, 100, valinit=seeder, valfmt="%d")
 
 
@@ -70,22 +77,24 @@ def sliders_on_changed(val):
         + c
     )
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
+    cooordinates = np.array((x, y)).T
+    a_new = np.append(a, [cooordinates.mean(axis=0)], axis=0)
     global scatter_points
     if not fill_status:
-        ax.clear()
-        ax.set_xlim([-5, 15])
-        ax.set_ylim([-5, 15])
-        ax.set_aspect("equal", "box")
-        ax.plot(x, y, linewidth=1, color="k")
+        ax_bez.clear()
+        ax_bez.set_xlim([-5, 15])
+        ax_bez.set_ylim([-5, 15])
+        ax_bez.set_aspect("equal", "box")
+        ax_bez.plot(x, y, linewidth=1, color="k")
     else:
-        ax.clear()
-        ax.set_xlim([-5, 15])
-        ax.set_ylim([-5, 15])
-        ax.set_aspect("equal", "box")
-        ax.fill(x, y, color="k")
-    scatter_points = ax.scatter(
-        a[:, 0],
-        a[:, 1],
+        ax_bez.clear()
+        ax_bez.set_xlim([-5, 15])
+        ax_bez.set_ylim([-5, 15])
+        ax_bez.set_aspect("equal", "box")
+        ax_bez.fill(x, y, color="k")
+    scatter_points = ax_bez.scatter(
+        a_new[:, 0],
+        a_new[:, 1],
         color="r",
         marker=".",
         alpha=1,
@@ -101,26 +110,26 @@ scale_slider.on_changed(sliders_on_changed)
 points_slider.on_changed(sliders_on_changed)
 seeder_slider.on_changed(sliders_on_changed)
 
-save_button_ax = fig.add_axes([0.85, 0.4, 0.1, 0.08])
+save_button_ax = fig.add_axes([0.85, 0.05, 0.1, 0.06])
 save_button = Button(save_button_ax, "Save", color="lawngreen", hovercolor="darkgreen")
 
 
 def save_button_on_clicked(mouse_event):
     scatter_points.remove()
-    ax.axis("off")
-    bbox = ax.get_tightbbox(fig.canvas.get_renderer())
+    ax_bez.axis("off")
+    bbox = ax_bez.get_tightbbox(fig.canvas.get_renderer())
     fig.savefig(
         os.path.join(os.getcwd(), "Bezier"),
         bbox_inches=bbox.transformed(fig.dpi_scale_trans.inverted()),
     )
-    ax.axis("on")
+    ax_bez.axis("on")
 
 
 save_button.on_clicked(save_button_on_clicked)
 save_button.on_clicked(sliders_on_changed)
 
 
-reset_button_ax = fig.add_axes([0.85, 0.5, 0.1, 0.08])
+reset_button_ax = fig.add_axes([0.85, 0.12, 0.1, 0.06])
 reset_button = Button(
     reset_button_ax, "Reset", color="lawngreen", hovercolor="darkgreen"
 )
@@ -138,7 +147,7 @@ def reset_button_on_clicked(mouse_event):
 
 reset_button.on_clicked(reset_button_on_clicked)
 
-fill_radios_ax = fig.add_axes([0.025, 0.5, 0.15, 0.15], facecolor=axis_color)
+fill_radios_ax = fig.add_axes([0.85, 0.5, 0.1, 0.15], facecolor=axis_color)
 fill_radios = RadioButtons(fill_radios_ax, ("No fill", "Fill"), active=0)
 
 

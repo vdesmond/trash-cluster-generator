@@ -5,9 +5,12 @@ import scipy.stats as stats
 import glob
 from rotateimg import *
 
+
 PATH = "../pngs"
 PATCH_SIZE = 1000
 NUM_IMAGES = 5
+
+np.random.seed(1)
 
 
 def get_truncated_normal(mean=500, sd=250, low=0, upp=1000):
@@ -57,6 +60,9 @@ def image_placer(img, bg):
 
     y1, y2 = y_offset, y_offset + h
     x1, x2 = x_offset, x_offset + w
+
+    # y1, y2 = y_offset - h // 2, y_offset + h // 2
+    # x1, x2 = x_offset - w // 2, x_offset + w // 2
 
     alpha_s = img[:, :, 3] / 255.0
     alpha_l = 1.0 - alpha_s
