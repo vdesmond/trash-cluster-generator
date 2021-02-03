@@ -19,8 +19,7 @@ fig.subplots_adjust(left=0.1, bottom=0.42, top=0.93, right=0.85)
 
 rad = 0.5
 edgy = 0.5
-
-seeder = 42
+seeder = 50
 c = [-1, 1]
 scale = 10
 points = 4
@@ -28,14 +27,12 @@ points = 4
 a = get_random_points(seeder, n=points, scale=scale) + c
 x, y, _ = get_bezier_curve(a, rad=rad, edgy=edgy)
 cooordinates = np.array((x, y)).T
-centre = np.array([np.max(x) - np.min(x), np.max(y) - np.min(y)])
-print(PATH)
-print(centre)
-a_new = np.append(a, [cooordinates.mean(axis=0)], axis=0)
+centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
+a_new = np.append(a, [centre], axis=0)
+
 ax_bez.set_xlim([-5, 15])
 ax_bez.set_ylim([-5, 15])
 ax_bez.set_aspect("equal", "box")
-
 ax_img.set_aspect("equal", "box")
 [line] = ax_bez.plot(x, y, linewidth=1, color="k")
 scatter_points = ax_bez.scatter(
@@ -78,7 +75,9 @@ def sliders_on_changed(val):
     )
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
     cooordinates = np.array((x, y)).T
-    a_new = np.append(a, [cooordinates.mean(axis=0)], axis=0)
+    centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
+    a_new = np.append(a, [centre], axis=0)
+
     global scatter_points
     if not fill_status:
         ax_bez.clear()
@@ -99,6 +98,8 @@ def sliders_on_changed(val):
         marker=".",
         alpha=1,
     )
+    cluster_image = cluster_makerv2(PATCH_SIZE, png_list, NUM_IMAGES, a_new)
+    ax_img.imshow(cluster_image)
     fig.canvas.draw_idle()
 
 
@@ -115,7 +116,7 @@ save_button = Button(save_button_ax, "Save", color="lawngreen", hovercolor="dark
 
 
 def save_button_on_clicked(mouse_event):
-    scatter_points.remove()
+    # scatter_points.remove()
     ax_bez.axis("off")
     bbox = ax_bez.get_tightbbox(fig.canvas.get_renderer())
     fig.savefig(

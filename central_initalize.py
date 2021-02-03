@@ -10,11 +10,13 @@ NUM_IMAGES = 5
 png_list = glob.glob(PATH + "/*")
 
 
-def image_placer(img, bg, bezier_coordinates):
+def image_placerv2(img, bg, bezier_coordinates):
     h, w, _ = img.shape
     size = bg.shape[0]
-
-    x_offset = np.random.random()
+    center_x, center_y = bezier_coordinates[-1][0], bezier_coordinates[-1][1]
+    ratio_x, ratio_y = (center_x + 5) / 20, 1 - ((center_y + 5) / 20)
+    x_offset = int((np.random.random() * 5) + (ratio_x * PATCH_SIZE) - (h / 2))
+    y_offset = int((np.random.random() * 5) + (ratio_y * PATCH_SIZE) - (w / 2))
 
     y1, y2 = y_offset, y_offset + h
     x1, x2 = x_offset, x_offset + w
@@ -25,14 +27,14 @@ def image_placer(img, bg, bezier_coordinates):
     return (bg, x_offset, y_offset)
 
 
-def cluster_makerv2(patch_size, png_list, num_images):
+def cluster_makerv2(patch_size, png_list, num_images, bezier_coordinates):
     background = np.zeros((patch_size, patch_size, 3), np.uint8)
     result = background.copy()
     imlist = random.sample(png_list, num_images)
     x_offlist, y_offlist = [], []
     for png in imlist:
         img = cv2.imread(png, -1)
-        result, x_offset, y_offset = image_placer(img, result)
+        result, x_offset, y_offset = image_placerv2(img, result, bezier_coordinates)
         x_offlist.append(x_offset)
         y_offlist.append(y_offset)
     return result
