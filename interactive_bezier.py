@@ -18,12 +18,14 @@ BG_LIST = [BG_PATH + s for s in os.listdir(BG_PATH)]
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 fill_status = False
 
-axis_color = "lightgoldenrodyellow"
+axis_color = "#ede5c0"
+slider_color = "#BF616A"
 
-fig = plt.figure("Bezier Closed Curve Generator", (14, 8))
+fig = plt.figure("Bezier Closed Curve Cluster Generator", (14, 8))
 fig.suptitle(
     "Interactive Cluster Generator using Random Bezier Closed Curves", fontsize=12
 )
+fig.patch.set_facecolor('#D8DEE9')
 ax_bez = fig.add_subplot(121)
 ax_img = fig.add_subplot(122)
 
@@ -59,26 +61,26 @@ scatter_points = ax_bez.scatter(
 )
 
 # Sliders
-rad_slider_ax = fig.add_axes([0.15, 0.32, 0.65, 0.03], facecolor=axis_color)
-rad_slider = Slider(rad_slider_ax, "Radius", 0.0, 1.0, valinit=rad)
+rad_slider_ax = fig.add_axes([0.15, 0.37, 0.65, 0.03], facecolor=axis_color)
+rad_slider = Slider(rad_slider_ax, "Radius", 0.0, 1.0, valinit=rad, color=slider_color)
 
-edgy_slider_ax = fig.add_axes([0.15, 0.27, 0.65, 0.03], facecolor=axis_color)
-edgy_slider = Slider(edgy_slider_ax, "Edginess", 0.0, 5.0, valinit=edgy)
+edgy_slider_ax = fig.add_axes([0.15, 0.32, 0.65, 0.03], facecolor=axis_color)
+edgy_slider = Slider(edgy_slider_ax, "Edginess", 0.0, 5.0, valinit=edgy, color=slider_color)
 
-c0_slider_ax = fig.add_axes([0.15, 0.22, 0.65, 0.03], facecolor=axis_color)
-c0_slider = Slider(c0_slider_ax, "Move X", -5.0, 5.0, valinit=c[0])
+c0_slider_ax = fig.add_axes([0.15, 0.27, 0.65, 0.03], facecolor=axis_color)
+c0_slider = Slider(c0_slider_ax, "Move X", -5.0, 5.0, valinit=c[0], color=slider_color)
 
-c1_slider_ax = fig.add_axes([0.15, 0.17, 0.65, 0.03], facecolor=axis_color)
-c1_slider = Slider(c1_slider_ax, "Move Y", -5.0, 5.0, valinit=c[1])
+c1_slider_ax = fig.add_axes([0.15, 0.22, 0.65, 0.03], facecolor=axis_color)
+c1_slider = Slider(c1_slider_ax, "Move Y", -5.0, 5.0, valinit=c[1], color=slider_color)
 
-scale_slider_ax = fig.add_axes([0.15, 0.12, 0.65, 0.03], facecolor=axis_color)
-scale_slider = Slider(scale_slider_ax, "Scale", 1.0, 20.0, valinit=scale)
+scale_slider_ax = fig.add_axes([0.15, 0.17, 0.65, 0.03], facecolor=axis_color)
+scale_slider = Slider(scale_slider_ax, "Scale", 1.0, 20.0, valinit=scale, color=slider_color)
 
-points_slider_ax = fig.add_axes([0.15, 0.07, 0.65, 0.03], facecolor=axis_color)
-points_slider = Slider(points_slider_ax, "Points", 3, 10, valinit=points, valfmt="%d")
+points_slider_ax = fig.add_axes([0.15, 0.12, 0.65, 0.03], facecolor=axis_color)
+points_slider = Slider(points_slider_ax, "Points", 3, 10, valinit=points, valfmt="%d", color=slider_color)
 
-seeder_slider_ax = fig.add_axes([0.15, 0.02, 0.65, 0.03], facecolor=axis_color)
-seeder_slider = Slider(seeder_slider_ax, "Seed", 1, 100, valinit=seeder, valfmt="%d")
+seeder_slider_ax = fig.add_axes([0.15, 0.07, 0.65, 0.03], facecolor=axis_color)
+seeder_slider = Slider(seeder_slider_ax, "Seed", 1, 100, valinit=seeder, valfmt="%d", color=slider_color)
 
 
 def sliders_on_changed(val):
@@ -129,7 +131,7 @@ seeder_slider.on_changed(sliders_on_changed)
 
 # -------------------------------------------------------------------- #
 save_button_ax = fig.add_axes([0.85, 0.05, 0.1, 0.06])
-save_button = Button(save_button_ax, "Save", color="lawngreen", hovercolor="darkgreen")
+save_button = Button(save_button_ax, "Save", color="#aee3f2", hovercolor="#85cade")
 
 
 def save_button_on_clicked(mouse_event):
@@ -157,7 +159,7 @@ save_button.on_clicked(sliders_on_changed)
 # -------------------------------------------------------------------- #
 reset_button_ax = fig.add_axes([0.85, 0.12, 0.1, 0.06])
 reset_button = Button(
-    reset_button_ax, "Reset", color="lawngreen", hovercolor="darkgreen"
+    reset_button_ax, "Reset", color="#aee3f2", hovercolor="#85cade"
 )
 
 
@@ -178,7 +180,7 @@ reset_button.on_clicked(sliders_on_changed)
 
 background_button_ax = fig.add_axes([0.85, 0.19, 0.1, 0.06])
 background_button = Button(
-    background_button_ax, "Backgound", color="lawngreen", hovercolor="darkgreen"
+    background_button_ax, "Backgound", color="#aee3f2", hovercolor="#85cade"
 )
 
 
@@ -193,7 +195,7 @@ background_button.on_clicked(sliders_on_changed)
 
 generate_button_ax = fig.add_axes([0.85, 0.26, 0.1, 0.06])
 generate_button = Button(
-    generate_button_ax, "Generate", color="lawngreen", hovercolor="darkgreen"
+    generate_button_ax, "Generate", color="#aee3f2", hovercolor="#85cade"
 )
 
 
