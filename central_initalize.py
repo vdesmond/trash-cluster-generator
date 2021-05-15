@@ -5,7 +5,7 @@ import glob
 from rotateimg import *
 
 PATH = "../pngs"
-PATCH_SIZE = (720,1280)
+PATCH_SIZE = (720, 1280)
 NUM_IMAGES = 5
 png_list = glob.glob(PATH + "/*")
 
@@ -34,7 +34,9 @@ def cluster_makerv2(patch_size, png_list, num_images, bezier_coordinates):
     # x_offlist, y_offlist = [], []
     for png in imlist:
         img = cv2.imread(png, -1)
-        result, x_offset, y_offset = image_placerv2(img, result, bezier_coordinates, patch_size)
+        result, x_offset, y_offset = image_placerv2(
+            img, result, bezier_coordinates, patch_size
+        )
         # x_offlist.append(x_offset)
         # y_offlist.append(y_offset)
     return result
