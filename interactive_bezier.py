@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 from bezier import *
 from central_initalize import *
+from generator import *
 
 DIM_X = 1280
 DIM_Y = 720
@@ -133,20 +134,21 @@ save_button = Button(save_button_ax, "Save", color="lawngreen", hovercolor="dark
 
 def save_button_on_clicked(mouse_event):
     # scatter_points.remove()
-    ax_bez.axis("off")
-    ax_img.axis("off")
-    bbox_bez = ax_bez.get_tightbbox(fig.canvas.get_renderer())
-    bbox_img = ax_img.get_tightbbox(fig.canvas.get_renderer())
-    fig.savefig(
-        os.path.join(os.getcwd(), "Bezier"),
-        bbox_inches=bbox_bez.transformed(fig.dpi_scale_trans.inverted()),
-    )
-    fig.savefig(
-        os.path.join(os.getcwd(), "Convexhull"),
-        bbox_inches=bbox_img.transformed(fig.dpi_scale_trans.inverted()),
-    )
-    ax_img.axis("on")
-    ax_bez.axis("on")
+    # ax_bez.axis("off")
+    # ax_img.axis("off")
+    # bbox_bez = ax_bez.get_tightbbox(fig.canvas.get_renderer())
+    # bbox_img = ax_img.get_tightbbox(fig.canvas.get_renderer())
+    # fig.savefig(
+    #     os.path.join(os.getcwd(), "Bezier"),
+    #     bbox_inches=bbox_bez.transformed(fig.dpi_scale_trans.inverted()),
+    # )
+    # fig.savefig(
+    #     os.path.join(os.getcwd(), "Convexhull"),
+    #     bbox_inches=bbox_img.transformed(fig.dpi_scale_trans.inverted()),
+    # )
+    # ax_img.axis("on")
+    # ax_bez.axis("on")
+    save_generate(cluster_image, cluster_mask, cluster_pil)
 
 
 save_button.on_clicked(save_button_on_clicked)
@@ -196,9 +198,12 @@ generate_button = Button(
 
 
 def generate_button_on_clicked(mouse_event):
-    cluster_image = cluster_makerv2(PATCH_SIZE, png_list, NUM_IMAGES, a_new)
+    # cluster_image = cluster_makerv2(PATCH_SIZE, png_list, NUM_IMAGES, a_new)
     bg_image = np.array(plt.imread(BG_LIST[bg_index]))
-    np.copyto(cluster_image, bg_image, where=cluster_image <= 10)
+    bg_mask = np.array(plt.imread(BG_LIST[bg_index].replace('images', 'labels').replace('jpeg', 'png')))
+    # np.copyto(cluster_image, bg_image, where=cluster_image <= 10)
+    global cluster_image, cluster_mask, cluster_pil
+    cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask)
     ax_img.imshow(cluster_image)
 
 
