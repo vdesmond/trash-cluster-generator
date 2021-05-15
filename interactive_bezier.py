@@ -1,3 +1,4 @@
+import os
 from numpy import pi, sin
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,18 +6,19 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 from bezier import *
 from central_initalize import *
 
+# from io
 
-def savefig_numpy(fig):
-    io_buf = io.BytesIO()
-    fig.savefig(io_buf, format="raw", dpi=DPI)
-    io_buf.seek(0)
-    img_arr = np.reshape(
-        np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
-        newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1),
-    )
-    io_buf.close()
-    return img_arr
-
+# def savefig_numpy(fig):
+#     io_buf = io.BytesIO()
+#     fig.savefig(io_buf, format="raw", dpi=DPI)
+#     io_buf.seek(0)
+#     img_arr = np.reshape(
+#         np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
+#         newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1),
+#     )
+#     io_buf.close()
+#     return img_arr
+ASPECT_RATIO = 1280/720
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 fill_status = False
@@ -24,7 +26,7 @@ fill_status = False
 axis_color = "lightgoldenrodyellow"
 
 fig = plt.figure("Bezier Closed Curve Generator", (14, 8))
-fig.suptitle("Interactive Random Bezier Closed Curve Generator", fontsize=12)
+fig.suptitle("Interactive Cluster Generator using Random Bezier Closed Curves", fontsize=12)
 ax_bez = fig.add_subplot(121)
 ax_img = fig.add_subplot(122)
 
@@ -45,8 +47,8 @@ a_new = np.append(a, [centre], axis=0)
 
 ax_bez.set_xlim([-5, 15])
 ax_bez.set_ylim([-5, 15])
-ax_bez.set_aspect("equal", "box")
-ax_img.set_aspect("equal", "box")
+ax_bez.set_aspect(1/(ASPECT_RATIO))
+ax_img.set_aspect(1/(ASPECT_RATIO))
 [line] = ax_bez.plot(x, y, linewidth=1, color="k")
 scatter_points = ax_bez.scatter(
     a_new[:, 0],
@@ -97,13 +99,13 @@ def sliders_on_changed(val):
         ax_bez.clear()
         ax_bez.set_xlim([-5, 15])
         ax_bez.set_ylim([-5, 15])
-        ax_bez.set_aspect("equal", "box")
+        ax_bez.set_aspect(1/(ASPECT_RATIO))
         ax_bez.plot(x, y, linewidth=1, color="k")
     else:
         ax_bez.clear()
         ax_bez.set_xlim([-5, 15])
         ax_bez.set_ylim([-5, 15])
-        ax_bez.set_aspect("equal", "box")
+        ax_bez.set_aspect(1/(ASPECT_RATIO))
         ax_bez.fill(x, y, color="k")
     scatter_points = ax_bez.scatter(
         a_new[:, 0],
@@ -187,7 +189,7 @@ generate_button.on_clicked(generate_button_on_clicked)
 
 
 # -------------------------------------------------------------------- #
-fill_radios_ax = fig.add_axes([0.85, 0.5, 0.1, 0.15], facecolor=axis_color)
+fill_radios_ax = fig.add_axes([0.88, 0.5, 0.1, 0.15], facecolor=axis_color)
 fill_radios = RadioButtons(fill_radios_ax, ("No fill", "Fill"), active=0)
 
 
