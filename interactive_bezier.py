@@ -198,10 +198,8 @@ generate_button = Button(
 
 
 def generate_button_on_clicked(mouse_event):
-    # cluster_image = cluster_makerv2(PATCH_SIZE, png_list, NUM_IMAGES, a_new)
     bg_image = np.array(plt.imread(BG_LIST[bg_index]))
     bg_mask = np.array(plt.imread(BG_LIST[bg_index].replace('images', 'labels').replace('jpeg', 'png')))
-    # np.copyto(cluster_image, bg_image, where=cluster_image <= 10)
     global cluster_image, cluster_mask, cluster_pil
     cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask)
     ax_img.imshow(cluster_image)
