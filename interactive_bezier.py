@@ -6,20 +6,13 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 from bezier import *
 from central_initalize import *
 
-# from io
-
-# def savefig_numpy(fig):
-#     io_buf = io.BytesIO()
-#     fig.savefig(io_buf, format="raw", dpi=DPI)
-#     io_buf.seek(0)
-#     img_arr = np.reshape(
-#         np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
-#         newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1),
-#     )
-#     io_buf.close()
-#     return img_arr
-
-ASPECT_RATIO = 1280 / 720
+DIM_X = 1280
+DIM_Y = 720
+LIMITS = [-5, 15]
+EXTENT = LIMITS * 2
+aspect_ratio = DIM_X / DIM_Y
+BG_PATH = "./beach_images/"
+BG_LIST = [BG_PATH + s for s in os.listdir(BG_PATH)]
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 fill_status = False
@@ -42,17 +35,20 @@ c = [-1, 1]
 scale = 10
 points = 4
 
+bg_index = 0
+
 a = get_random_points(seeder, n=points, scale=scale) + c
 x, y, _ = get_bezier_curve(a, rad=rad, edgy=edgy)
 cooordinates = np.array((x, y)).T
 centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
 a_new = np.append(a, [centre], axis=0)
 
-ax_bez.set_xlim([-5, 15])
-ax_bez.set_ylim([-5, 15])
-ax_bez.set_aspect(1 / (ASPECT_RATIO))
-ax_img.set_aspect(1 / (ASPECT_RATIO))
-[line] = ax_bez.plot(x, y, linewidth=1, color="k")
+ax_bez.set_xlim(LIMITS)
+ax_bez.set_ylim(LIMITS)
+ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
+ax_bez.set_aspect(1 / (aspect_ratio))
+ax_img.set_aspect(1 / (aspect_ratio))
+[line] = ax_bez.plot(x, y, linewidth=1, color="w")
 scatter_points = ax_bez.scatter(
     a_new[:, 0],
     a_new[:, 1],
@@ -100,16 +96,18 @@ def sliders_on_changed(val):
     global scatter_points
     if not fill_status:
         ax_bez.clear()
-        ax_bez.set_xlim([-5, 15])
-        ax_bez.set_ylim([-5, 15])
-        ax_bez.set_aspect(1 / (ASPECT_RATIO))
-        ax_bez.plot(x, y, linewidth=1, color="k")
+        ax_bez.set_xlim(LIMITS)
+        ax_bez.set_ylim(LIMITS)
+        ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
+        ax_bez.set_aspect(1 / (aspect_ratio))
+        ax_bez.plot(x, y, linewidth=1, color="w")
     else:
         ax_bez.clear()
-        ax_bez.set_xlim([-5, 15])
-        ax_bez.set_ylim([-5, 15])
-        ax_bez.set_aspect(1 / (ASPECT_RATIO))
-        ax_bez.fill(x, y, color="k")
+        ax_bez.set_xlim(LIMITS)
+        ax_bez.set_ylim(LIMITS)
+        ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
+        ax_bez.set_aspect(1 / (aspect_ratio))
+        ax_bez.fill(x, y, color="w", alpha=0.5)
     scatter_points = ax_bez.scatter(
         a_new[:, 0],
         a_new[:, 1],
@@ -176,7 +174,22 @@ reset_button.on_clicked(sliders_on_changed)
 
 # -------------------------------------------------------------------- #
 
-generate_button_ax = fig.add_axes([0.85, 0.19, 0.1, 0.06])
+background_button_ax = fig.add_axes([0.85, 0.19, 0.1, 0.06])
+background_button = Button(
+    background_button_ax, "Backgound", color="lawngreen", hovercolor="darkgreen"
+)
+
+
+def background_button_on_clicked(mouse_event):
+    global bg_index
+    bg_index = bg_index + 1 % (len(BG_LIST))
+
+background_button.on_clicked(background_button_on_clicked)
+background_button.on_clicked(sliders_on_changed)
+
+# -------------------------------------------------------------------- #
+
+generate_button_ax = fig.add_axes([0.85, 0.26, 0.1, 0.06])
 generate_button = Button(
     generate_button_ax, "Generate", color="lawngreen", hovercolor="darkgreen"
 )
@@ -184,12 +197,13 @@ generate_button = Button(
 
 def generate_button_on_clicked(mouse_event):
     cluster_image = cluster_makerv2(PATCH_SIZE, png_list, NUM_IMAGES, a_new)
+    bg_image = np.array(plt.imread(BG_LIST[bg_index]))
+    np.copyto(cluster_image, bg_image, where=cluster_image <= 10)
     ax_img.imshow(cluster_image)
 
 
 generate_button.on_clicked(sliders_on_changed)
 generate_button.on_clicked(generate_button_on_clicked)
-
 
 # -------------------------------------------------------------------- #
 fill_radios_ax = fig.add_axes([0.88, 0.5, 0.1, 0.15], facecolor=axis_color)
