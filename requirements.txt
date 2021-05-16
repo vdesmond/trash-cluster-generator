@@ -27,7 +27,7 @@ colorama==0.4.3
 coloredlogs==15.0
 command-not-found==0.3
 constantly==15.1.0
-cryptography==2.8
+cryptography==3.3.2
 cssutils==1.0.2
 cupshelpers==1.0
 cycler==0.10.0
