@@ -2,9 +2,8 @@ import os
 from numpy import pi, sin
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RadioButtons
+from matplotlib.widgets import Slider, Button, RadioButtons, RangeSlider
 from bezier import *
-from central_initalize import *
 from generator import *
 
 DIM_X = 1280
@@ -25,11 +24,11 @@ fig = plt.figure("Bezier Closed Curve Cluster Generator", (14, 8))
 fig.suptitle(
     "Interactive Cluster Generator using Random Bezier Closed Curves", fontsize=12
 )
-fig.patch.set_facecolor('#D8DEE9')
+fig.patch.set_facecolor("#D8DEE9")
 ax_bez = fig.add_subplot(121)
 ax_img = fig.add_subplot(122)
 
-fig.subplots_adjust(left=0.1, bottom=0.42, top=0.93, right=0.85)
+fig.subplots_adjust(left=0.15, bottom=0.45, top=0.99, right=0.85)
 
 rad = 0.5
 edgy = 0.5
@@ -37,11 +36,12 @@ seeder = 50
 c = [-1, 1]
 scale = 10
 points = 4
+cluster_limit = (3,7)
 
 bg_index = 0
 
 a = get_random_points(seeder, n=points, scale=scale) + c
-x, y, _ = get_bezier_curve(a, rad=rad, edgy=edgy)
+x, y, s = get_bezier_curve(a, rad=rad, edgy=edgy)
 cooordinates = np.array((x, y)).T
 centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
 a_new = np.append(a, [centre], axis=0)
@@ -60,36 +60,62 @@ scatter_points = ax_bez.scatter(
     alpha=1,
 )
 
+# ! debug
+# for i in range(len(s)):
+#     ax_bez.scatter(
+#         s[i].p[:, 0],
+#         s[i].p[:, 1],
+#         color="w",
+#         marker=".",
+#         alpha=0.4,
+#     )
+
 # Sliders
-rad_slider_ax = fig.add_axes([0.15, 0.37, 0.65, 0.03], facecolor=axis_color)
+rad_slider_ax = fig.add_axes([0.15, 0.42, 0.65, 0.03], facecolor=axis_color)
 rad_slider = Slider(rad_slider_ax, "Radius", 0.0, 1.0, valinit=rad, color=slider_color)
 
-edgy_slider_ax = fig.add_axes([0.15, 0.32, 0.65, 0.03], facecolor=axis_color)
-edgy_slider = Slider(edgy_slider_ax, "Edginess", 0.0, 5.0, valinit=edgy, color=slider_color)
+edgy_slider_ax = fig.add_axes([0.15, 0.37, 0.65, 0.03], facecolor=axis_color)
+edgy_slider = Slider(
+    edgy_slider_ax, "Edginess", 0.0, 5.0, valinit=edgy, color=slider_color
+)
 
-c0_slider_ax = fig.add_axes([0.15, 0.27, 0.65, 0.03], facecolor=axis_color)
+c0_slider_ax = fig.add_axes([0.15, 0.32, 0.65, 0.03], facecolor=axis_color)
 c0_slider = Slider(c0_slider_ax, "Move X", -5.0, 5.0, valinit=c[0], color=slider_color)
 
-c1_slider_ax = fig.add_axes([0.15, 0.22, 0.65, 0.03], facecolor=axis_color)
+c1_slider_ax = fig.add_axes([0.15, 0.27, 0.65, 0.03], facecolor=axis_color)
 c1_slider = Slider(c1_slider_ax, "Move Y", -5.0, 5.0, valinit=c[1], color=slider_color)
 
-scale_slider_ax = fig.add_axes([0.15, 0.17, 0.65, 0.03], facecolor=axis_color)
-scale_slider = Slider(scale_slider_ax, "Scale", 1.0, 20.0, valinit=scale, color=slider_color)
+scale_slider_ax = fig.add_axes([0.15, 0.22, 0.65, 0.03], facecolor=axis_color)
+scale_slider = Slider(
+    scale_slider_ax, "Scale", 1.0, 20.0, valinit=scale, color=slider_color
+)
 
-points_slider_ax = fig.add_axes([0.15, 0.12, 0.65, 0.03], facecolor=axis_color)
-points_slider = Slider(points_slider_ax, "Points", 3, 10, valinit=points, valfmt="%d", color=slider_color)
+points_slider_ax = fig.add_axes([0.15, 0.17, 0.65, 0.03], facecolor=axis_color)
+points_slider = Slider(
+    points_slider_ax, "Points", 3, 10, valinit=points, valfmt="%d", color=slider_color
+)
 
-seeder_slider_ax = fig.add_axes([0.15, 0.07, 0.65, 0.03], facecolor=axis_color)
-seeder_slider = Slider(seeder_slider_ax, "Seed", 1, 100, valinit=seeder, valfmt="%d", color=slider_color)
+seeder_slider_ax = fig.add_axes([0.15, 0.12, 0.65, 0.03], facecolor=axis_color)
+seeder_slider = Slider(
+    seeder_slider_ax, "Seed", 1, 100, valinit=seeder, valfmt="%d", color=slider_color
+)
 
+cluster_limit_slider_ax = fig.add_axes([0.15, 0.07, 0.65, 0.03], facecolor=axis_color)
+cluster_limit_slider = RangeSlider(
+    cluster_limit_slider_ax, "Cluster Count", 1, 20, valinit=cluster_limit, valfmt="%d", color=slider_color
+)
 
 def sliders_on_changed(val):
+    global cluster_limit
+
+    cluster_limit = (int(cluster_limit_slider.val[0]), int(cluster_limit_slider.val[1]))
+    global x, y, c
     c = [c0_slider.val, c1_slider.val]
     scale = scale_slider.val
     a = (
         get_random_points(int(seeder_slider.val), n=int(points_slider.val), scale=scale)
         + c
-    )
+    )    
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
     cooordinates = np.array((x, y)).T
     centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
@@ -128,6 +154,7 @@ c1_slider.on_changed(sliders_on_changed)
 scale_slider.on_changed(sliders_on_changed)
 points_slider.on_changed(sliders_on_changed)
 seeder_slider.on_changed(sliders_on_changed)
+cluster_limit_slider.on_changed(sliders_on_changed)
 
 # -------------------------------------------------------------------- #
 save_button_ax = fig.add_axes([0.85, 0.05, 0.1, 0.06])
@@ -135,21 +162,6 @@ save_button = Button(save_button_ax, "Save", color="#aee3f2", hovercolor="#85cad
 
 
 def save_button_on_clicked(mouse_event):
-    # scatter_points.remove()
-    # ax_bez.axis("off")
-    # ax_img.axis("off")
-    # bbox_bez = ax_bez.get_tightbbox(fig.canvas.get_renderer())
-    # bbox_img = ax_img.get_tightbbox(fig.canvas.get_renderer())
-    # fig.savefig(
-    #     os.path.join(os.getcwd(), "Bezier"),
-    #     bbox_inches=bbox_bez.transformed(fig.dpi_scale_trans.inverted()),
-    # )
-    # fig.savefig(
-    #     os.path.join(os.getcwd(), "Convexhull"),
-    #     bbox_inches=bbox_img.transformed(fig.dpi_scale_trans.inverted()),
-    # )
-    # ax_img.axis("on")
-    # ax_bez.axis("on")
     save_generate(cluster_image, cluster_mask, cluster_pil)
 
 
@@ -158,12 +170,11 @@ save_button.on_clicked(sliders_on_changed)
 
 # -------------------------------------------------------------------- #
 reset_button_ax = fig.add_axes([0.85, 0.12, 0.1, 0.06])
-reset_button = Button(
-    reset_button_ax, "Reset", color="#aee3f2", hovercolor="#85cade"
-)
+reset_button = Button(reset_button_ax, "Reset", color="#aee3f2", hovercolor="#85cade")
 
 
 def reset_button_on_clicked(mouse_event):
+    global bg_index
     rad_slider.reset()
     edgy_slider.reset()
     c0_slider.reset()
@@ -171,6 +182,8 @@ def reset_button_on_clicked(mouse_event):
     scale_slider.reset()
     points_slider.reset()
     seeder_slider.reset()
+    cluster_limit_slider.set_val((3,7))
+    bg_index = 0
 
 
 reset_button.on_clicked(reset_button_on_clicked)
@@ -188,6 +201,7 @@ def background_button_on_clicked(mouse_event):
     global bg_index
     bg_index = bg_index + 1 % (len(BG_LIST))
 
+
 background_button.on_clicked(background_button_on_clicked)
 background_button.on_clicked(sliders_on_changed)
 
@@ -200,18 +214,27 @@ generate_button = Button(
 
 
 def generate_button_on_clicked(mouse_event):
-    bg_image = np.array(plt.imread(BG_LIST[bg_index]))
-    bg_mask = np.array(plt.imread(BG_LIST[bg_index].replace('images', 'labels').replace('jpeg', 'png')))
-    global cluster_image, cluster_mask, cluster_pil
-    cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask)
-    ax_img.imshow(cluster_image)
+    try:
+        bg_image = np.array(plt.imread(BG_LIST[bg_index]))
+        bg_mask = np.array(
+            plt.imread(
+                BG_LIST[bg_index].replace("images", "labels").replace("jpeg", "png")
+            )
+        )
+        params = list(zip(x, y))
+        params.append(tuple(c))
+        global cluster_image, cluster_mask, cluster_pil
+        cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask, params, climit=cluster_limit)
+        ax_img.imshow(cluster_image)
+    except Exception as e:
+        print(e + "\nRetry")
 
 
 generate_button.on_clicked(sliders_on_changed)
 generate_button.on_clicked(generate_button_on_clicked)
 
 # -------------------------------------------------------------------- #
-fill_radios_ax = fig.add_axes([0.88, 0.5, 0.1, 0.15], facecolor=axis_color)
+fill_radios_ax = fig.add_axes([0.88, 0.5, 0.07, 0.10], facecolor=axis_color)
 fill_radios = RadioButtons(fill_radios_ax, ("No fill", "Fill"), active=0)
 
 
