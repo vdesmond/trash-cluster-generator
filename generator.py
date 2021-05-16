@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import glob
 from PIL import Image
 import numpy as np
 import random
@@ -9,6 +8,10 @@ import time
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import skimage.transform as transform
+import traceback
+
+from rangemap import translate_offset
+from edgecrop import edgecrop
 
 foreground_full_list = [
     "/home/desmond/Desktop/taco-dataset/pngs/" + s for s in os.listdir("../pngs")
@@ -20,11 +23,14 @@ cmp = matplotlib.colors.ListedColormap(
 
 
 def foregroundAug(foreground):
+    # ! add scale
     # Random rotation, zoom, translation
     angle = np.random.randint(-10, 10) * (np.pi / 180.0)  # Convert to radians
-    zoom = np.random.random() * 0.4 + 0.8  # Zoom in range [0.8,1.2)
-    t_x = np.random.randint(0, int(foreground.shape[1] / 3))
-    t_y = np.random.randint(0, int(foreground.shape[0] / 3))
+    zoom = np.random.random() * 0.4 + 0.2  # Zoom in range [0.2,0.6)
+    # t_x = np.random.randint(0, int(foreground.shape[1] / 3))
+    # t_y = np.random.randint(0, int(foreground.shape[0] / 3))
+
+    t_x, t_y = 0, 0
 
     tform = transform.AffineTransform(
         scale=(zoom, zoom), rotation=angle, translation=(t_x, t_y)
@@ -33,37 +39,34 @@ def foregroundAug(foreground):
     # Random horizontal flip with 0.5 probability
     if np.random.randint(0, 100) >= 50:
         foreground = foreground[:, ::-1]
+
     return foreground
 
 
-def compose(foregrounds, background, init):
+def compose(foregrounds, background, init, center, offset_list):
     background = Image.fromarray(background)
-    bg_w, bg_h = background.size
 
     # Offset list
-    t_x_list = []
-    t_y_list = []
     for i in range(len(foregrounds)):
-        current_foreground = Image.fromarray((foregrounds[i] * 255).astype(np.uint8))
-        img_w, img_h = current_foreground.size
+        current_foreground = edgecrop(Image.fromarray((foregrounds[i] * 255).astype(np.uint8)))
 
-        # Random Offsets
-        t_x = np.random.randint(int(-bg_w / 1.5), int(bg_w / 1.5))
-        t_y = np.random.randint(int(-bg_h / 8), int(bg_h / 1.5))
+        # Quadrant
+        current_init = init[i]
+        theta = np.arctan2(current_init[1] - center[1], current_init[0] - center[0])
+        angle = np.degrees(theta)
 
-        t_x_list.append(t_x)
-        t_y_list.append(t_y)
+        # Offset
+        offset = offset_list[i]
 
-        offset = ((bg_w - img_w + t_x) // 2, (bg_h - img_h + t_y) // 2)
         background.paste(
             current_foreground, offset, current_foreground.convert("RGBA")
         )  # RGBA == RGB alpha channel
 
-    return background, t_x_list, t_y_list
+    return background
 
 
 def getForegroundMask(
-    foregrounds, background, background_mask, classes_list, t_x_list, t_y_list
+    foregrounds, background, background_mask, classes_list, offset_list
 ):
 
     background = Image.fromarray(background)
@@ -80,7 +83,7 @@ def getForegroundMask(
         ) * classes_list[i]
 
         img_w, img_h = current_foreground.shape
-        offset = ((bg_w - img_h + t_x_list[i]) // 2, (bg_h - img_w + t_y_list[i]) // 2)
+        offset = offset_list[i]
 
         roi = np.copy(
             mask_new[offset[1] : offset[1] + img_w, offset[0] : offset[0] + img_h]
@@ -102,7 +105,7 @@ def getForegroundMask(
 
 
 def generate_cluster(
-    background, background_mask, params, climit, foreground_full_list=foreground_full_list, 
+    background, background_mask, params, climit, limits, dims, foreground_full_list=foreground_full_list, 
 ):
     # Cluster limits
     cluster_low_limit,  cluster_high_limit = climit
@@ -113,7 +116,9 @@ def generate_cluster(
     # classes_list = [int(i) for i in classes_list]
 
     classes_list = [random.randint(3, 7) for _ in foreground_list]
+
     init_list = random.sample(params[:-1], len(foreground_list))
+    curve_center = params[-1]
 
     foregrounds = []
     for i in foreground_list:
@@ -122,20 +127,23 @@ def generate_cluster(
     for i in range(len(foregrounds)):
         foregrounds[i] = foregroundAug(foregrounds[i])
 
+    # ! temp
+    offsets = [translate_offset(p, limits, dims) for p in init_list]        
+
     try:
-        final_background, t_x_list, t_y_list = compose(foregrounds, background, init_list)
+        final_background = compose(foregrounds, background, init_list, curve_center, offsets)
         mask_new = getForegroundMask(
             foregrounds,
             background,
             background_mask,
             classes_list,
-            t_x_list,
-            t_y_list,
+            offsets
         )
         mask_new_pil = Image.fromarray(mask_new)
-        return final_background, mask_new, mask_new_pil
+        return final_background, mask_new, mask_new_pil, offsets
     except Exception as e:
         print(e)
+        # traceback.print_exc()
         return 0
 
 

@@ -1,4 +1,5 @@
 import os
+import traceback
 from numpy import pi, sin
 import numpy as np
 import matplotlib.pyplot as plt
@@ -109,7 +110,7 @@ def sliders_on_changed(val):
     global cluster_limit
 
     cluster_limit = (int(cluster_limit_slider.val[0]), int(cluster_limit_slider.val[1]))
-    global x, y, c
+    global x, y
     c = [c0_slider.val, c1_slider.val]
     scale = scale_slider.val
     a = (
@@ -118,6 +119,7 @@ def sliders_on_changed(val):
     )    
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
     cooordinates = np.array((x, y)).T
+    global centre
     centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
     global a_new
     a_new = np.append(a, [centre], axis=0)
@@ -193,7 +195,7 @@ reset_button.on_clicked(sliders_on_changed)
 
 background_button_ax = fig.add_axes([0.85, 0.19, 0.1, 0.06])
 background_button = Button(
-    background_button_ax, "Backgound", color="#aee3f2", hovercolor="#85cade"
+    background_button_ax, "Background", color="#aee3f2", hovercolor="#85cade"
 )
 
 
@@ -222,12 +224,14 @@ def generate_button_on_clicked(mouse_event):
             )
         )
         params = list(zip(x, y))
-        params.append(tuple(c))
+        params.append(tuple(centre))
         global cluster_image, cluster_mask, cluster_pil
-        cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask, params, climit=cluster_limit)
-        ax_img.imshow(cluster_image)
+        cluster_image, cluster_mask, cluster_pil, _ = generate_cluster(np.flipud(bg_image), bg_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
+        ax_img.imshow(cluster_image, origin="lower")
+
     except Exception as e:
-        print(e + "\nRetry")
+        print(e)
+        # traceback.print_exc()
 
 
 generate_button.on_clicked(sliders_on_changed)
