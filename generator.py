@@ -36,7 +36,7 @@ def foregroundAug(foreground):
     return foreground
 
 
-def compose(foregrounds, background):
+def compose(foregrounds, background, init):
     background = Image.fromarray(background)
     bg_w, bg_h = background.size
 
@@ -102,18 +102,18 @@ def getForegroundMask(
 
 
 def generate_cluster(
-    background, background_mask, foreground_full_list=foreground_full_list
+    background, background_mask, params, climit, foreground_full_list=foreground_full_list, 
 ):
     # Cluster limits
-    cluster_low_limit = 3
-    cluster_high_limit = 7
+    cluster_low_limit,  cluster_high_limit = climit
     foreground_list = random.sample(
         foreground_full_list, random.randint(cluster_low_limit, cluster_high_limit)
     )
     # classes_list = [x.rsplit("/", 2)[-2][-1] for x in foreground_list]
     # classes_list = [int(i) for i in classes_list]
 
-    classes_list = [random.randint(3, 7) for x in foreground_list]
+    classes_list = [random.randint(3, 7) for _ in foreground_list]
+    init_list = random.sample(params[:-1], len(foreground_list))
 
     foregrounds = []
     for i in foreground_list:
@@ -123,7 +123,7 @@ def generate_cluster(
         foregrounds[i] = foregroundAug(foregrounds[i])
 
     try:
-        final_background, t_x_list, t_y_list = compose(foregrounds, background)
+        final_background, t_x_list, t_y_list = compose(foregrounds, background, init_list)
         mask_new = getForegroundMask(
             foregrounds,
             background,
