@@ -96,7 +96,7 @@ ll-xist==5.65
 llvmlite==0.36.0
 lockfile==0.12.2
 louis==3.12.0
-lxml==4.5.0
+lxml==4.6.3
 macaroonbakery==1.3.1
 Mako==1.1.0
 MarkupSafe==1.1.0
@@ -129,7 +129,7 @@ pathspec==0.8.1
 pbr==5.4.5
 pexpect==4.6.0
 pickleshare==0.7.5
-Pillow==7.0.0
+Pillow==8.1.1
 pipreqs==0.4.10
 ply==3.11
 pooch==1.3.0
@@ -169,7 +169,7 @@ python-libtorrent==1.1.13
 pytz==2019.3
 PyWavelets==1.1.1
 pyxdg==0.26
-PyYAML==5.3.1
+PyYAML==5.4
 pyzmq==22.0.2
 qtconsole==5.0.2
 QtPy==1.9.0
