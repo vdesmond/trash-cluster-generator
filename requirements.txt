@@ -27,7 +27,7 @@ colorama==0.4.3
 coloredlogs==15.0
 command-not-found==0.3
 constantly==15.1.0
-cryptography==2.8
+cryptography==3.3.2
 cssutils==1.0.2
 cupshelpers==1.0
 cycler==0.10.0
@@ -57,7 +57,7 @@ grpcio==1.35.0
 guake==3.7.0
 hijra==1.0
 html5lib==1.0.1
-httplib2==0.14.0
+httplib2==0.19.0
 humanfriendly==9.1
 hurry.filesize==0.9
 hyperlink==19.0.0
@@ -207,7 +207,7 @@ tifffile==2021.4.8
 toml==0.10.2
 tornado==6.1
 traitlets==4.3.3
-Twisted==18.9.0
+Twisted==20.3.0
 typed-ast==1.4.2
 typing-extensions==3.7.4.3
 typing-inspect==0.6.0
