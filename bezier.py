@@ -79,7 +79,7 @@ def get_bezier_curve(a, rad=0.2, edgy=0):
     a = np.append(a, np.atleast_2d(ang).T, axis=1)
     s, c = get_curve(a, r=rad, method="var")
     x, y = c.T
-    return x, y, a
+    return x, y, s
 
 
 def get_random_points(seeder, n=5, scale=2, mindst=None, rec=0):
@@ -98,7 +98,7 @@ def get_random_points(seeder, n=5, scale=2, mindst=None, rec=0):
         return get_random_points(seeder, n=n, scale=scale, mindst=mindst, rec=rec + 1)
 
 
-def bezier_plot(i, fill=True, rad=0.5, edgy=0.05):
+def bezier_plot(fill=True, rad=0.5, edgy=0.05):
     c = [0, 1]
     a = get_random_points(seeder=0, n=4, scale=10) + c
     x, y, _ = get_bezier_curve(a, rad=rad, edgy=edgy)
@@ -115,4 +115,7 @@ def bezier_plot(i, fill=True, rad=0.5, edgy=0.05):
     plt.xlim((-5, 15))
     plt.ylim((-2, 18))
     # plt.axis("off")
-    fig.savefig(os.path.join(os.getcwd(), f"Bezier-{i}"), bbox_inches="tight")
+    fig.savefig(os.path.join(os.getcwd(), f"Bezier"), bbox_inches="tight")
+
+if __name__ == "__main__":
+    bezier_plot()
