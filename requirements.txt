@@ -57,7 +57,7 @@ grpcio==1.35.0
 guake==3.7.0
 hijra==1.0
 html5lib==1.0.1
-httplib2==0.14.0
+httplib2==0.19.0
 humanfriendly==9.1
 hurry.filesize==0.9
 hyperlink==19.0.0
