@@ -85,15 +85,7 @@ def getForegroundMask(
 
     background = Image.fromarray(background)
 
-    # 2D mask
-    mask_new = background_mask.astype(np.uint8)
-    plt.imsave(
-    "./rgb_label_10.png",
-    np.asarray(mask_new),
-    vmin=1,
-    vmax=7,
-    cmap=cmp,
-)
+    mask_new = (background_mask * 255).astype(np.uint8)
 
     for i in range(len(foregrounds)):
         foregrounds[i] = foregrounds[i] * 255  # Scaling
@@ -111,8 +103,11 @@ def getForegroundMask(
         )
         roi_mask = np.logical_and(
             np.logical_or(
-                (roi == 0).astype(bool), (roi != classes_list[i]).astype(bool)
-            ),
+                np.logical_or(
+                (roi == 1).astype(bool), (roi == 2).astype(bool)
+                ), (roi != classes_list[i]).astype(bool)
+            )    
+            ,
             (current_foreground != 0).astype(bool),
         )
 
@@ -170,8 +165,8 @@ def generate_cluster(
 
 def save_generate(final_background, mask_new, mask_new_pil):
     savedate = int(time.time() * 10)
-    # bg = final_background.transpose(PIL.Image.FLIP_TOP_BOTTOM)
     final_background.save(f"./img_{savedate}.jpeg")
+
     mask_new_pil.save(f"./label_{savedate}.png")
     plt.imsave(
         f"./rgb_label_{savedate}.png",
