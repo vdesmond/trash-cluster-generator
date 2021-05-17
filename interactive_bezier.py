@@ -42,7 +42,7 @@ points = 4
 cluster_limit = (3,7)
 
 bg_index = 0
-cluster_image, cluster_mask, cluster_pil = None, None, None
+cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
 
 a = get_random_points(seeder, n=points, scale=scale) + c
 x, y, s = get_bezier_curve(a, rad=rad, edgy=edgy)
@@ -215,7 +215,6 @@ generate_button = Button(
 
 def generate_button_on_clicked(mouse_event):
     try:
-        
         bg_image = np.array(plt.imread(BG_LIST[bg_index]))
         bg_mask = np.array(
             plt.imread(
@@ -224,8 +223,8 @@ def generate_button_on_clicked(mouse_event):
         )
         params = list(zip(x, y))
         params.append(tuple(centre))
-        global cluster_image, cluster_mask, cluster_pil
-        cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
+        global cluster_image, cluster_mask, cluster_pil, cache
+        cluster_image, cluster_mask, cluster_pil, cache = generate_cluster(bg_image, bg_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
         
         if not cluster_image:
             raise OutOfBoundsClusterError
@@ -255,12 +254,12 @@ def add_new_button_on_clicked(mouse_event):
         
         params = list(zip(x, y))
         params.append(tuple(centre))
-        global cluster_image, cluster_mask, cluster_pil
+        global cluster_image, cluster_mask, cluster_pil, cache
 
         if cluster_image is None:
             raise ClusterNotGeneratedError
 
-        cluster_image, cluster_mask, cluster_pil = generate_cluster(np.array(cluster_image), cluster_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y), new_cluster=False)
+        cluster_image, cluster_mask, cluster_pil, cache = generate_cluster(np.array(cluster_image), cluster_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y), new_cluster=False)
         
         if cluster_image is None:
             raise OutOfBoundsClusterError
@@ -279,6 +278,44 @@ def add_new_button_on_clicked(mouse_event):
 
 add_new_button.on_clicked(sliders_on_changed)
 add_new_button.on_clicked(add_new_button_on_clicked)
+
+# -------------------------------------------------------------------- #
+
+update_button_ax = fig.add_axes([0.85, 0.40, 0.1, 0.06])
+update_button = Button(
+    update_button_ax, "Update", color="#aee3f2", hovercolor="#85cade"
+)
+
+
+def update_on_clicked(mouse_event):
+    try:
+        
+        params = list(zip(x, y))
+        params.append(tuple(centre))
+        global cluster_image, cluster_mask, cluster_pil, cache
+
+        if cluster_image is None:
+            raise ClusterNotGeneratedError
+
+        cluster_image, cluster_mask, cluster_pil, cache = update_cluster(*cache, params, LIMITS, (DIM_X,DIM_Y))
+        
+        if cluster_image is None:
+            raise OutOfBoundsClusterError
+
+        ax_img.imshow(np.flipud(cluster_image), origin="lower")
+
+    except ClusterNotGeneratedError:
+        print("Error: Generate cluster before adding a new one.")
+
+    except OutOfBoundsClusterError:
+        print("Error: Out of Bounds. Retry")
+
+    except Exception:
+        traceback.print_exc()
+
+
+update_button.on_clicked(sliders_on_changed)
+update_button.on_clicked(update_on_clicked)
 
 # -------------------------------------------------------------------- #
 

@@ -130,8 +130,7 @@ def generate_cluster(
     background, background_mask, params, climit, limits, dims, foreground_full_list=foreground_full_list, new_cluster=True
 ):
     if background is None:
-        return None, None, None
-    
+        return None, None, None, None
     
     # Cluster limits
     cluster_low_limit,  cluster_high_limit = climit
@@ -143,7 +142,8 @@ def generate_cluster(
 
     classes_list = [random.randint(3, 7) for _ in foreground_list]
 
-    init_list = random.sample(params[:-1], len(foreground_list))
+    init_indexes = random.sample(range(len(params[:-1])), len(foreground_list))
+    init_list = np.asarray(params)[init_indexes]
     curve_center = params[-1]
 
     foregrounds = []
@@ -155,6 +155,42 @@ def generate_cluster(
 
     offsets = [translate_offset(p, limits, dims) for p in init_list]
 
+    cache_for_update = (background, background_mask, classes_list, foregrounds, init_indexes)
+    
+    
+    try:
+        final_background, modified_offs = compose(foregrounds, background, init_list, curve_center, offsets)
+        
+        mask_new = getForegroundMask(
+            foregrounds,
+            background,
+            background_mask,
+            classes_list,
+            modified_offs,
+            new_cluster = False
+        )
+        mask_new_pil = Image.fromarray(mask_new)
+        return final_background, mask_new, mask_new_pil, cache_for_update
+    
+    except ValueError:
+        if new_cluster:
+            return None, None, None, None
+        else:
+            return background, background_mask, Image.fromarray(background_mask), cache_for_update
+    
+    except Exception:
+        traceback.print_exc()   
+
+
+def update_cluster(
+    background, background_mask, classes_list, foregrounds, init_indexes, params, limits, dims
+):
+    curve_center = params[-1]
+    init_list = np.asarray(params)[init_indexes]
+    offsets = [translate_offset(p, limits, dims) for p in init_list]
+
+    cache_for_update = (background, background_mask, classes_list, foregrounds, init_indexes)
+
     try:
         final_background, modified_offs = compose(foregrounds, background, init_list, curve_center, offsets)
         mask_new = getForegroundMask(
@@ -163,18 +199,18 @@ def generate_cluster(
             background_mask,
             classes_list,
             modified_offs,
-            new_cluster
+            new_cluster=False
         )
         mask_new_pil = Image.fromarray(mask_new)
-        return final_background, mask_new, mask_new_pil
+        return final_background, mask_new, mask_new_pil, cache_for_update
+    
     except ValueError:
-        if new_cluster:
-            return None, None, None
-        else:
-            return background, background_mask, Image.fromarray(background_mask)
+        return background, background_mask, Image.fromarray(background_mask), cache_for_update
+    
     except Exception:
         traceback.print_exc()
 
+    
 
 def save_generate(final_background, mask_new, mask_new_pil):
     savedate = int(time.time() * 10)
