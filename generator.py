@@ -27,8 +27,6 @@ def foregroundAug(foreground):
     # Random rotation, zoom, translation
     angle = np.random.randint(-10, 10) * (np.pi / 180.0)  # Convert to radians
     zoom = np.random.random() * 0.4 + 0.2  # Zoom in range [0.2,0.6)
-    # t_x = np.random.randint(0, int(foreground.shape[1] / 3))
-    # t_y = np.random.randint(0, int(foreground.shape[0] / 3))
 
     t_x, t_y = 0, 0
 
@@ -40,37 +38,52 @@ def foregroundAug(foreground):
     if np.random.randint(0, 100) >= 50:
         foreground = foreground[:, ::-1]
 
-    return foreground
+    return edgecrop(foreground)
 
 
 def compose(foregrounds, background, init, center, offset_list):
     background = Image.fromarray(background)
+    flipbg = background.transpose(Image.FLIP_TOP_BOTTOM)
 
     # Offset list
+    offset_new_list = []
     for i in range(len(foregrounds)):
-        current_foreground = edgecrop(Image.fromarray((foregrounds[i] * 255).astype(np.uint8)))
+        current_foreground = Image.fromarray((foregrounds[i] * 255).astype(np.uint8))
+        im_w, im_h = current_foreground.size
 
         # Quadrant
         current_init = init[i]
         theta = np.arctan2(current_init[1] - center[1], current_init[0] - center[0])
         angle = np.degrees(theta)
+        
 
         # Offset
         offset = offset_list[i]
+        print(offset)
 
-        background.paste(
+        if 0 <= angle <= 90:
+            offset_new = offset[0] - im_w, offset[1]
+        elif -90 <= angle < 0:
+            offset_new = offset[0] - im_w, offset[1] - im_h
+        elif -180 <= angle <= 90:
+            offset_new = offset[0], offset[1] - ( im_h // 2)
+        else:
+            offset_new = offset
+
+        flipbg.paste(
             current_foreground, offset, current_foreground.convert("RGBA")
         )  # RGBA == RGB alpha channel
+        offset_new_list.append(offset_new)
+    background = flipbg.transpose(Image.FLIP_TOP_BOTTOM)
 
-    return background
+    return background, offset_new_list
 
 
 def getForegroundMask(
-    foregrounds, background, background_mask, classes_list, offset_list
+    foregrounds, background, background_mask, classes_list, modified_offs
 ):
 
     background = Image.fromarray(background)
-    bg_w, bg_h = background.size
 
     # 2D mask
     mask_new = background_mask.astype(np.uint8)
@@ -83,7 +96,7 @@ def getForegroundMask(
         ) * classes_list[i]
 
         img_w, img_h = current_foreground.shape
-        offset = offset_list[i]
+        offset = modified_offs[i]
 
         roi = np.copy(
             mask_new[offset[1] : offset[1] + img_w, offset[0] : offset[0] + img_h]
@@ -94,6 +107,7 @@ def getForegroundMask(
             ),
             (current_foreground != 0).astype(bool),
         )
+
         # Paste current foreground mask over previous mask
         np.copyto(
             mask_new[offset[1] : offset[1] + img_w, offset[0] : offset[0] + img_h],
@@ -127,28 +141,28 @@ def generate_cluster(
     for i in range(len(foregrounds)):
         foregrounds[i] = foregroundAug(foregrounds[i])
 
-    # ! temp
-    offsets = [translate_offset(p, limits, dims) for p in init_list]        
+    offsets = [translate_offset(p, limits, dims) for p in init_list]
 
     try:
-        final_background = compose(foregrounds, background, init_list, curve_center, offsets)
+        final_background, modified_offs = compose(foregrounds, background, init_list, curve_center, offsets)
         mask_new = getForegroundMask(
             foregrounds,
             background,
             background_mask,
             classes_list,
-            offsets
+            modified_offs
         )
         mask_new_pil = Image.fromarray(mask_new)
-        return final_background, mask_new, mask_new_pil, offsets
+        return final_background, mask_new, mask_new_pil
     except Exception as e:
-        print(e)
-        # traceback.print_exc()
+        # print(e)
+        traceback.print_exc()
         return 0
 
 
 def save_generate(final_background, mask_new, mask_new_pil):
     savedate = int(time.time() * 10)
+    # bg = final_background.transpose(PIL.Image.FLIP_TOP_BOTTOM)
     final_background.save(f"./img_{savedate}.jpeg")
     mask_new_pil.save(f"./label_{savedate}.png")
     plt.imsave(
