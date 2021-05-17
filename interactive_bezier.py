@@ -60,16 +60,7 @@ scatter_points = ax_bez.scatter(
     marker=".",
     alpha=1,
 )
-
-# ! debug
-# for i in range(len(s)):
-#     ax_bez.scatter(
-#         s[i].p[:, 0],
-#         s[i].p[:, 1],
-#         color="w",
-#         marker=".",
-#         alpha=0.4,
-#     )
+ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
 
 # Sliders
 rad_slider_ax = fig.add_axes([0.15, 0.42, 0.65, 0.03], facecolor=axis_color)
@@ -81,10 +72,10 @@ edgy_slider = Slider(
 )
 
 c0_slider_ax = fig.add_axes([0.15, 0.32, 0.65, 0.03], facecolor=axis_color)
-c0_slider = Slider(c0_slider_ax, "Move X", -5.0, 5.0, valinit=c[0], color=slider_color)
+c0_slider = Slider(c0_slider_ax, "Move X", -7.0, 16.0, valinit=c[0], color=slider_color)
 
 c1_slider_ax = fig.add_axes([0.15, 0.27, 0.65, 0.03], facecolor=axis_color)
-c1_slider = Slider(c1_slider_ax, "Move Y", -5.0, 5.0, valinit=c[1], color=slider_color)
+c1_slider = Slider(c1_slider_ax, "Move Y", -7.0, 16.0, valinit=c[1], color=slider_color)
 
 scale_slider_ax = fig.add_axes([0.15, 0.22, 0.65, 0.03], facecolor=axis_color)
 scale_slider = Slider(
@@ -186,6 +177,7 @@ def reset_button_on_clicked(mouse_event):
     seeder_slider.reset()
     cluster_limit_slider.set_val((3,7))
     bg_index = 0
+    ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
 
 
 reset_button.on_clicked(reset_button_on_clicked)
@@ -217,6 +209,7 @@ generate_button = Button(
 
 def generate_button_on_clicked(mouse_event):
     try:
+        
         bg_image = np.array(plt.imread(BG_LIST[bg_index]))
         bg_mask = np.array(
             plt.imread(
@@ -226,18 +219,46 @@ def generate_button_on_clicked(mouse_event):
         params = list(zip(x, y))
         params.append(tuple(centre))
         global cluster_image, cluster_mask, cluster_pil
-        cluster_image, cluster_mask, cluster_pil, _ = generate_cluster(np.flipud(bg_image), bg_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
-        ax_img.imshow(cluster_image, origin="lower")
+        cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
+        ax_img.imshow(np.flipud(cluster_image), origin="lower")
+
 
     except Exception as e:
-        print(e)
-        # traceback.print_exc()
+        # print(e)
+        traceback.print_exc()
 
 
 generate_button.on_clicked(sliders_on_changed)
 generate_button.on_clicked(generate_button_on_clicked)
 
 # -------------------------------------------------------------------- #
+
+add_new_button_ax = fig.add_axes([0.85, 0.33, 0.1, 0.06])
+add_new_button = Button(
+    add_new_button_ax, "Add Cluster", color="#aee3f2", hovercolor="#85cade"
+)
+
+
+def add_new_button_on_clicked(mouse_event):
+    try:
+        
+        params = list(zip(x, y))
+        params.append(tuple(centre))
+        global cluster_image, cluster_mask, cluster_pil
+
+        cluster_image, cluster_mask, cluster_pil = generate_cluster(np.array(cluster_image), cluster_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
+        ax_img.imshow(np.flipud(cluster_image), origin="lower")
+
+    except Exception as e:
+        # print(e)
+        traceback.print_exc()
+
+
+add_new_button.on_clicked(sliders_on_changed)
+add_new_button.on_clicked(add_new_button_on_clicked)
+
+# -------------------------------------------------------------------- #
+
 fill_radios_ax = fig.add_axes([0.88, 0.5, 0.07, 0.10], facecolor=axis_color)
 fill_radios = RadioButtons(fill_radios_ax, ("No fill", "Fill"), active=0)
 
