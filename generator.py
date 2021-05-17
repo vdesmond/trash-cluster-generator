@@ -59,33 +59,37 @@ def compose(foregrounds, background, init, center, offset_list):
 
         # Offset
         offset = offset_list[i]
-        print(offset)
 
         if 0 <= angle <= 90:
-            offset_new = offset[0] - im_w, offset[1]
+            offset_new = offset[0] - (im_w // 2), offset[1]
         elif -90 <= angle < 0:
-            offset_new = offset[0] - im_w, offset[1] - im_h
+            offset_new = offset[0] - (im_w // 2), offset[1] - (im_h // 2)
         elif -180 <= angle <= 90:
             offset_new = offset[0], offset[1] - ( im_h // 2)
         else:
             offset_new = offset
 
         flipbg.paste(
-            current_foreground, offset, current_foreground.convert("RGBA")
-        )  # RGBA == RGB alpha channel
+            current_foreground, offset_new, current_foreground.convert("RGBA")
+        )  # RGBA ==> RGB alpha channel
+
         offset_new_list.append(offset_new)
+    
     background = flipbg.transpose(Image.FLIP_TOP_BOTTOM)
 
     return background, offset_new_list
 
 
 def getForegroundMask(
-    foregrounds, background, background_mask, classes_list, modified_offs
+    foregrounds, background, background_mask, classes_list, modified_offs, new_cluster
 ):
 
     background = Image.fromarray(background)
 
-    mask_new = (background_mask * 255).astype(np.uint8)
+    if new_cluster:
+        mask_new = np.flipud((background_mask * 255).astype(np.uint8))
+    else:
+        mask_new = np.flipud(background_mask)
 
     for i in range(len(foregrounds)):
         foregrounds[i] = foregrounds[i] * 255  # Scaling
@@ -101,6 +105,7 @@ def getForegroundMask(
         roi = np.copy(
             mask_new[offset[1] : offset[1] + img_w, offset[0] : offset[0] + img_h]
         )
+
         roi_mask = np.logical_and(
             np.logical_or(
                 np.logical_or(
@@ -118,12 +123,16 @@ def getForegroundMask(
             where=roi_mask,
         )
 
-    return mask_new
+    return np.flipud(mask_new)
 
 
 def generate_cluster(
-    background, background_mask, params, climit, limits, dims, foreground_full_list=foreground_full_list, 
+    background, background_mask, params, climit, limits, dims, foreground_full_list=foreground_full_list, new_cluster=True
 ):
+    if background is None:
+        return None, None, None
+    
+    
     # Cluster limits
     cluster_low_limit,  cluster_high_limit = climit
     foreground_list = random.sample(
@@ -153,14 +162,18 @@ def generate_cluster(
             background,
             background_mask,
             classes_list,
-            modified_offs
+            modified_offs,
+            new_cluster
         )
         mask_new_pil = Image.fromarray(mask_new)
         return final_background, mask_new, mask_new_pil
-    except Exception as e:
-        # print(e)
+    except ValueError:
+        if new_cluster:
+            return None, None, None
+        else:
+            return background, background_mask, Image.fromarray(background_mask)
+    except Exception:
         traceback.print_exc()
-        return 0
 
 
 def save_generate(final_background, mask_new, mask_new_pil):
@@ -170,7 +183,7 @@ def save_generate(final_background, mask_new, mask_new_pil):
     mask_new_pil.save(f"./label_{savedate}.png")
     plt.imsave(
         f"./rgb_label_{savedate}.png",
-        np.asarray(mask_new),
+        mask_new,
         vmin=1,
         vmax=7,
         cmap=cmp,

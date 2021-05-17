@@ -1,11 +1,13 @@
 import os
 import traceback
+from PIL.Image import new
 from numpy import pi, sin
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons, RangeSlider
 from bezier import *
 from generator import *
+from cluster_error import ClusterNotGeneratedError, OutOfBoundsClusterError
 
 DIM_X = 1280
 DIM_Y = 720
@@ -40,6 +42,7 @@ points = 4
 cluster_limit = (3,7)
 
 bg_index = 0
+cluster_image, cluster_mask, cluster_pil = None, None, None
 
 a = get_random_points(seeder, n=points, scale=scale) + c
 x, y, s = get_bezier_curve(a, rad=rad, edgy=edgy)
@@ -177,6 +180,9 @@ def reset_button_on_clicked(mouse_event):
     seeder_slider.reset()
     cluster_limit_slider.set_val((3,7))
     bg_index = 0
+
+    global cluster_image, cluster_mask, cluster_pil
+    cluster_image, cluster_mask, cluster_pil = None, None, None
     ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
 
 
@@ -220,11 +226,16 @@ def generate_button_on_clicked(mouse_event):
         params.append(tuple(centre))
         global cluster_image, cluster_mask, cluster_pil
         cluster_image, cluster_mask, cluster_pil = generate_cluster(bg_image, bg_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
+        
+        if not cluster_image:
+            raise OutOfBoundsClusterError
+
         ax_img.imshow(np.flipud(cluster_image), origin="lower")
 
-
-    except Exception as e:
-        # print(e)
+    except OutOfBoundsClusterError:
+        print("Error: Out of Bounds. Retry")
+    
+    except Exception:
         traceback.print_exc()
 
 
@@ -246,11 +257,23 @@ def add_new_button_on_clicked(mouse_event):
         params.append(tuple(centre))
         global cluster_image, cluster_mask, cluster_pil
 
-        cluster_image, cluster_mask, cluster_pil = generate_cluster(np.array(cluster_image), cluster_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
+        if cluster_image is None:
+            raise ClusterNotGeneratedError
+
+        cluster_image, cluster_mask, cluster_pil = generate_cluster(np.array(cluster_image), cluster_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y), new_cluster=False)
+        
+        if cluster_image is None:
+            raise OutOfBoundsClusterError
+
         ax_img.imshow(np.flipud(cluster_image), origin="lower")
 
-    except Exception as e:
-        # print(e)
+    except ClusterNotGeneratedError:
+        print("Error: Generate cluster before adding a new one.")
+
+    except OutOfBoundsClusterError:
+        print("Error: Out of Bounds. Retry")
+
+    except Exception:
         traceback.print_exc()
 
 
