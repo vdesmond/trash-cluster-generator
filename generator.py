@@ -87,6 +87,14 @@ def getForegroundMask(
 
     # 2D mask
     mask_new = background_mask.astype(np.uint8)
+    plt.imsave(
+    "./rgb_label_10.png",
+    np.asarray(mask_new),
+    vmin=1,
+    vmax=7,
+    cmap=cmp,
+)
+
     for i in range(len(foregrounds)):
         foregrounds[i] = foregrounds[i] * 255  # Scaling
 
