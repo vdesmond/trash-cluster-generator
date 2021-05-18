@@ -156,7 +156,9 @@ save_button = Button(save_button_ax, "Save", color="#aee3f2", hovercolor="#85cad
 
 
 def save_button_on_clicked(mouse_event):
+    global cluster_image, cluster_mask, cluster_pil, cache
     save_generate(cluster_image, cluster_mask, cluster_pil)
+    cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
 
 
 save_button.on_clicked(save_button_on_clicked)
@@ -295,7 +297,18 @@ def update_on_clicked(mouse_event):
         if cluster_image is None:
             raise ClusterNotGeneratedError
 
-        cluster_image, cluster_mask, cluster_pil, cache = update_cluster(*cache, params, LIMITS, (DIM_X,DIM_Y))
+        bg_mask = np.array(
+            plt.imread(
+                BG_LIST[bg_index].replace("images", "labels").replace("jpeg", "png")
+            )
+        )
+
+        if np.array_equal(bg_mask, cache[1]):
+            new_cluster=True
+        else:
+            new_cluster=False
+
+        cluster_image, cluster_mask, cluster_pil, cache = update_cluster(*cache, params, LIMITS, (DIM_X,DIM_Y), new_cluster)
         
         if np.array_equal(cluster_image, cache[0]):
             raise OutOfBoundsClusterError

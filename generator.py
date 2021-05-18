@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import glob
 from PIL import Image
 import numpy as np
 import random
@@ -13,20 +14,17 @@ import traceback
 from rangemap import translate_offset
 from edgecrop import edgecrop
 
-foreground_full_list = [
-    "/home/desmond/Desktop/taco-dataset/pngs/" + s for s in os.listdir("../pngs")
-]
+foreground_full_list = glob.glob(os.getcwd() + "/trashnet/*")
 
 cmp = matplotlib.colors.ListedColormap(
-    ["tan", "cyan", "pink", "forestgreen", "blue", "purple", "crimson"]
+    ["tan", "cyan", "pink", "forestgreen", "blue"] #? Beach, Other Background, Glass, Metal, Plastic
 )
-
 
 def foregroundAug(foreground):
     # ! add scale
     # Random rotation, zoom, translation
     angle = np.random.randint(-10, 10) * (np.pi / 180.0)  # Convert to radians
-    zoom = np.random.random() * 0.4 + 0.2  # Zoom in range [0.2,0.6)
+    zoom = np.random.random() * 0.2 + 0.1  # Zoom in range [0.1,0.3)
 
     t_x, t_y = 0, 0
 
@@ -137,10 +135,9 @@ def generate_cluster(
     foreground_list = random.sample(
         foreground_full_list, random.randint(cluster_low_limit, cluster_high_limit)
     )
-    # classes_list = [x.rsplit("/", 2)[-2][-1] for x in foreground_list]
-    # classes_list = [int(i) for i in classes_list]
-
-    classes_list = [random.randint(3, 7) for _ in foreground_list]
+    
+    classes_list = [x.rsplit("/", 1)[1][0] for x in foreground_list]
+    classes_list = [int(i) for i in classes_list]
 
     init_indexes = random.sample(range(len(params[:-1])), len(foreground_list))
     init_list = np.asarray(params)[init_indexes]
@@ -183,7 +180,7 @@ def generate_cluster(
 
 
 def update_cluster(
-    background, background_mask, classes_list, foregrounds, init_indexes, params, limits, dims
+    background, background_mask, classes_list, foregrounds, init_indexes, params, limits, dims, new_cluster
 ):
 
     curve_center = params[-1]
@@ -200,7 +197,7 @@ def update_cluster(
             background_mask,
             classes_list,
             modified_offs,
-            new_cluster=False
+            new_cluster
         )
         mask_new_pil = Image.fromarray(mask_new)
         return final_background, mask_new, mask_new_pil, cache_for_update
@@ -221,6 +218,6 @@ def save_generate(final_background, mask_new, mask_new_pil):
         f"./rgb_label_{savedate}.png",
         mask_new,
         vmin=1,
-        vmax=7,
+        vmax=5,
         cmap=cmp,
     )
