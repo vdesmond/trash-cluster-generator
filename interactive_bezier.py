@@ -28,7 +28,7 @@ BG_LIST = [BG_PATH + s for s in os.listdir(BG_PATH)]
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 
 axis_color = "#ede5c0"
-slider_color = "#BF616A"
+slider_color = "#bf616a"
 
 fig = plt.figure("Bezier Closed Curve Cluster Generator", (14, 8))
 fig.suptitle(
@@ -75,6 +75,8 @@ scatter_points = ax_bez.scatter(
 )
 
 cluster_handler = ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
+
+text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor='#a3be8c')
 
 # Sliders
 rad_slider_ax = fig.add_axes([0.15, 0.42, 0.65, 0.03], facecolor=axis_color)
@@ -156,10 +158,21 @@ def save_button_on_clicked(mouse_event):
         global cluster_image, cluster_mask, cluster_pil, cache
         save_generate(cluster_image, cluster_mask, cluster_pil)
         cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
+    except ClusterNotGeneratedError:
+        logger.warning("Generate cluster before saving.")
+        text_handler.set_text("Generate new")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#ede5c0")
     except Exception:
         logger.error(traceback.print_exc())
+        text_handler.set_text("Error. See logs")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#bf616a")
     else:
         logger.debug("Saved successfully.")
+        text_handler.set_text("Saved")
+        text_handler.set_position((0.89, 0.70))
+        text_handler.set_backgroundcolor("#a3be8c")
 
 
 save_button.on_clicked(save_button_on_clicked)
@@ -188,8 +201,14 @@ def reset_button_on_clicked(mouse_event):
         cluster_handler.set_data(np.flipud(np.array(plt.imread(BG_LIST[0]))))
     except Exception:
         logger.error(traceback.print_exc())
+        text_handler.set_text("Error. See logs")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#bf616a")
     else:
         logger.info("Reset state.")
+        text_handler.set_text("Reset")
+        text_handler.set_position((0.89, 0.70))
+        text_handler.set_backgroundcolor("#a3be8c")
 
 
 reset_button.on_clicked(reset_button_on_clicked)
@@ -209,8 +228,14 @@ def background_button_on_clicked(mouse_event):
         bg_index = bg_index + 1 % (len(BG_LIST))
     except Exception:
         logger.error(traceback.print_exc())
+        text_handler.set_text("Error. See logs")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#bf616a")
     else:
         logger.info("Changed background.")
+        text_handler.set_text("Changed")
+        text_handler.set_position((0.88, 0.70))
+        text_handler.set_backgroundcolor("#a3be8c")
 
 
 background_button.on_clicked(background_button_on_clicked)
@@ -244,12 +269,21 @@ def generate_button_on_clicked(mouse_event):
 
     except OutOfBoundsClusterError:
         logger.warning("Out of Bounds. Retry")
-    
+        text_handler.set_text("Out of Bounds")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#ede5c0")
+
     except Exception:
         logger.error(traceback.print_exc())
+        text_handler.set_text("Error. See logs")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#bf616a")
     
     else:
         logger.info("Generated new cluster.")
+        text_handler.set_text("Generated")
+        text_handler.set_position((0.88, 0.70))
+        text_handler.set_backgroundcolor("#a3be8c")
 
 
 generate_button.on_clicked(sliders_on_changed)
@@ -282,15 +316,27 @@ def add_new_button_on_clicked(mouse_event):
 
     except ClusterNotGeneratedError:
         logger.warning("Generate cluster before adding a new one.")
+        text_handler.set_text("Generate new")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#ede5c0")
 
     except OutOfBoundsClusterError:
         logger.warning("Out of Bounds. Retry")
+        text_handler.set_text("Out of Bounds")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#ede5c0")
 
     except Exception:
         logger.error(traceback.print_exc())
+        text_handler.set_text("Error. See logs.")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#bf616a")
     
     else:
         logger.info("Added cluster.")
+        text_handler.set_text("Added")
+        text_handler.set_position((0.89, 0.70))
+        text_handler.set_backgroundcolor("#a3be8c")
 
 
 add_new_button.on_clicked(sliders_on_changed)
@@ -333,16 +379,28 @@ def update_on_clicked(mouse_event):
         cluster_handler.set_data(np.flipud(cluster_image))
 
     except ClusterNotGeneratedError:
-        logger.warning("Generate cluster before adding a new one.")
+        logger.warning("Generate cluster before updating.")
+        text_handler.set_text("Generate new")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#ede5c0")
 
     except OutOfBoundsClusterError:
         logger.warning("Out of Bounds. Retry")
+        text_handler.set_text("Out of Bounds")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#ede5c0")
 
     except Exception:
         logger.error(traceback.print_exc())
+        text_handler.set_text("Error. See logs")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#bf616a")
    
     else:
         logger.info("Updated cluster.")
+        text_handler.set_text("Updated")
+        text_handler.set_position((0.88, 0.70))
+        text_handler.set_backgroundcolor("#a3be8c")
 
 
 update_button.on_clicked(sliders_on_changed)
