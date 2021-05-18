@@ -137,7 +137,6 @@ def generate_cluster(
     )
     
     classes_list = [x.rsplit("_", 1)[0][-1] for x in foreground_list]
-    print(classes_list)
     classes_list = [int(i) for i in classes_list]
 
     init_indexes = random.sample(range(len(params[:-1])), len(foreground_list))

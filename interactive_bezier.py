@@ -7,6 +7,8 @@ from bezier import *
 from generator import *
 from cluster_error import ClusterNotGeneratedError, OutOfBoundsClusterError
 
+from memory_profiler import profile
+
 DIM_X = 1280
 DIM_Y = 720
 LIMITS = [-5, 15]
@@ -98,6 +100,7 @@ cluster_limit_slider = RangeSlider(
     cluster_limit_slider_ax, "Cluster Count", 1, 20, valinit=cluster_limit, valfmt="%d", color=slider_color
 )
 
+@profile
 def sliders_on_changed(val):
     global cluster_limit
 
@@ -154,7 +157,7 @@ cluster_limit_slider.on_changed(sliders_on_changed)
 save_button_ax = fig.add_axes([0.85, 0.05, 0.1, 0.06])
 save_button = Button(save_button_ax, "Save", color="#aee3f2", hovercolor="#85cade")
 
-
+@profile
 def save_button_on_clicked(mouse_event):
     global cluster_image, cluster_mask, cluster_pil, cache
     save_generate(cluster_image, cluster_mask, cluster_pil)
@@ -168,7 +171,7 @@ save_button.on_clicked(sliders_on_changed)
 reset_button_ax = fig.add_axes([0.85, 0.12, 0.1, 0.06])
 reset_button = Button(reset_button_ax, "Reset", color="#aee3f2", hovercolor="#85cade")
 
-
+@profile
 def reset_button_on_clicked(mouse_event):
     global bg_index
     rad_slider.reset()
@@ -196,7 +199,7 @@ background_button = Button(
     background_button_ax, "Background", color="#aee3f2", hovercolor="#85cade"
 )
 
-
+@profile
 def background_button_on_clicked(mouse_event):
     global bg_index
     bg_index = bg_index + 1 % (len(BG_LIST))
@@ -212,7 +215,7 @@ generate_button = Button(
     generate_button_ax, "Generate", color="#aee3f2", hovercolor="#85cade"
 )
 
-
+@profile
 def generate_button_on_clicked(mouse_event):
     try:
         bg_image = np.array(plt.imread(BG_LIST[bg_index]))
@@ -248,7 +251,7 @@ add_new_button = Button(
     add_new_button_ax, "Add Cluster", color="#aee3f2", hovercolor="#85cade"
 )
 
-
+@profile
 def add_new_button_on_clicked(mouse_event):
     try:
         
@@ -286,7 +289,7 @@ update_button = Button(
     update_button_ax, "Update", color="#aee3f2", hovercolor="#85cade"
 )
 
-
+@profile
 def update_on_clicked(mouse_event):
     try:
         
