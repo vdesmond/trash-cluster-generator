@@ -52,10 +52,13 @@ a_new = np.append(a, [centre], axis=0)
 
 ax_bez.set_xlim(LIMITS)
 ax_bez.set_ylim(LIMITS)
-ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
+
+bezier_handler = ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
+
 ax_bez.set_aspect(1 / (aspect_ratio))
 ax_img.set_aspect(1 / (aspect_ratio))
-[line] = ax_bez.plot(x, y, linewidth=1, color="w")
+
+bezier_curve, = ax_bez.plot(x, y, linewidth=1, color="w")
 scatter_points = ax_bez.scatter(
     a_new[:, 0],
     a_new[:, 1],
@@ -63,7 +66,8 @@ scatter_points = ax_bez.scatter(
     marker=".",
     alpha=1,
 )
-ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
+
+cluster_handler = ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
 
 # Sliders
 rad_slider_ax = fig.add_axes([0.15, 0.42, 0.65, 0.03], facecolor=axis_color)
@@ -103,7 +107,6 @@ cluster_limit_slider = RangeSlider(
 @profile
 def sliders_on_changed(val):
     global cluster_limit
-
     cluster_limit = (int(cluster_limit_slider.val[0]), int(cluster_limit_slider.val[1]))
     global x, y
     c = [c0_slider.val, c1_slider.val]
@@ -121,25 +124,13 @@ def sliders_on_changed(val):
 
     global scatter_points
     if not fill_status:
-        ax_bez.clear()
-        ax_bez.set_xlim(LIMITS)
-        ax_bez.set_ylim(LIMITS)
-        ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
-        ax_bez.set_aspect(1 / (aspect_ratio))
-        ax_bez.plot(x, y, linewidth=1, color="w")
+        bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
+        bezier_curve.set_data(x, y)
     else:
-        ax_bez.clear()
-        ax_bez.set_xlim(LIMITS)
-        ax_bez.set_ylim(LIMITS)
-        ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
-        ax_bez.set_aspect(1 / (aspect_ratio))
+        bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
         ax_bez.fill(x, y, color="w", alpha=0.5)
-    scatter_points = ax_bez.scatter(
-        a_new[:, 0],
-        a_new[:, 1],
-        color="r",
-        marker=".",
-        alpha=1,
+    scatter_points.set_offsets(
+        a_new
     )
     fig.canvas.draw_idle()
 
@@ -186,7 +177,7 @@ def reset_button_on_clicked(mouse_event):
 
     global cluster_image, cluster_mask, cluster_pil
     cluster_image, cluster_mask, cluster_pil = None, None, None
-    ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
+    cluster_handler.set_data(np.flipud(np.array(plt.imread(BG_LIST[0]))))
 
 
 reset_button.on_clicked(reset_button_on_clicked)
@@ -232,7 +223,7 @@ def generate_button_on_clicked(mouse_event):
         if not cluster_image:
             raise OutOfBoundsClusterError
 
-        ax_img.imshow(np.flipud(cluster_image), origin="lower")
+        cluster_handler.set_data(np.flipud(cluster_image))
 
     except OutOfBoundsClusterError:
         print("Error: Out of Bounds. Retry")
@@ -267,7 +258,7 @@ def add_new_button_on_clicked(mouse_event):
         if np.array_equal(cluster_image, cache[0]):
             raise OutOfBoundsClusterError
 
-        ax_img.imshow(np.flipud(cluster_image), origin="lower")
+        cluster_handler.set_data(np.flipud(cluster_image))
 
     except ClusterNotGeneratedError:
         print("Error: Generate cluster before adding a new one.")
@@ -316,7 +307,7 @@ def update_on_clicked(mouse_event):
         if np.array_equal(cluster_image, cache[0]):
             raise OutOfBoundsClusterError
 
-        ax_img.imshow(np.flipud(cluster_image), origin="lower")
+        cluster_handler.set_data(np.flipud(cluster_image))
 
     except ClusterNotGeneratedError:
         print("Error: Generate cluster before adding a new one.")
