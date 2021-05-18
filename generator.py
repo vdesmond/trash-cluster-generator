@@ -146,30 +146,30 @@ def generate_cluster(
     init_list = np.asarray(params)[init_indexes]
     curve_center = params[-1]
 
-    foregrounds = []
+    foreground_images = []
     for i in foreground_list:
-        foregrounds.append(np.asarray(Image.open(i)))
+        foreground_images.append(np.asarray(Image.open(i)))
 
-    for i in range(len(foregrounds)):
-        foregrounds[i] = foregroundAug(foregrounds[i])
+    for i in range(len(foreground_images)):
+        foreground_images[i] = foregroundAug(foreground_images[i])
 
     offsets = [translate_offset(p, limits, dims) for p in init_list]
 
-    cache_for_update = (background, background_mask, classes_list, foregrounds, init_indexes)
-    
+    cache_for_update = (background[:], background_mask[:], classes_list, foreground_images[:], init_indexes)
     
     try:
-        final_background, modified_offs = compose(foregrounds, background, init_list, curve_center, offsets)
+        final_background, modified_offs = compose(foreground_images, background, init_list, curve_center, offsets)
         
         mask_new = getForegroundMask(
-            foregrounds,
+            foreground_images,
             background,
             background_mask,
             classes_list,
             modified_offs,
-            new_cluster = False
+            new_cluster
         )
         mask_new_pil = Image.fromarray(mask_new)
+
         return final_background, mask_new, mask_new_pil, cache_for_update
     
     except ValueError:
@@ -185,11 +185,12 @@ def generate_cluster(
 def update_cluster(
     background, background_mask, classes_list, foregrounds, init_indexes, params, limits, dims
 ):
+
     curve_center = params[-1]
     init_list = np.asarray(params)[init_indexes]
     offsets = [translate_offset(p, limits, dims) for p in init_list]
 
-    cache_for_update = (background, background_mask, classes_list, foregrounds, init_indexes)
+    cache_for_update = (background[:], background_mask[:], classes_list, foregrounds[:], init_indexes)
 
     try:
         final_background, modified_offs = compose(foregrounds, background, init_list, curve_center, offsets)
@@ -215,7 +216,6 @@ def update_cluster(
 def save_generate(final_background, mask_new, mask_new_pil):
     savedate = int(time.time() * 10)
     final_background.save(f"./img_{savedate}.jpeg")
-
     mask_new_pil.save(f"./label_{savedate}.png")
     plt.imsave(
         f"./rgb_label_{savedate}.png",

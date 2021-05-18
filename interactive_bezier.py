@@ -1,7 +1,5 @@
 import os
 import traceback
-from PIL.Image import new
-from numpy import pi, sin
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons, RangeSlider
@@ -261,7 +259,7 @@ def add_new_button_on_clicked(mouse_event):
 
         cluster_image, cluster_mask, cluster_pil, cache = generate_cluster(np.array(cluster_image), cluster_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y), new_cluster=False)
         
-        if cluster_image is None:
+        if np.array_equal(cluster_image, cache[0]):
             raise OutOfBoundsClusterError
 
         ax_img.imshow(np.flipud(cluster_image), origin="lower")
@@ -299,7 +297,7 @@ def update_on_clicked(mouse_event):
 
         cluster_image, cluster_mask, cluster_pil, cache = update_cluster(*cache, params, LIMITS, (DIM_X,DIM_Y))
         
-        if cluster_image is None:
+        if np.array_equal(cluster_image, cache[0]):
             raise OutOfBoundsClusterError
 
         ax_img.imshow(np.flipud(cluster_image), origin="lower")
