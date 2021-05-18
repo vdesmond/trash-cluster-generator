@@ -7,7 +7,15 @@ from bezier import *
 from generator import *
 from cluster_error import ClusterNotGeneratedError, OutOfBoundsClusterError
 
-from memory_profiler import profile
+# from memory_profiler import profile
+import logging
+import coloredlogs
+
+# ? Configure logging
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+logging.getLogger("PIL").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
+coloredlogs.install(level="DEBUG", fmt="%(asctime)s - %(message)s", datefmt="%H:%M:%S")
 
 DIM_X = 1280
 DIM_Y = 720
@@ -18,7 +26,6 @@ BG_PATH = "./beach_images/"
 BG_LIST = [BG_PATH + s for s in os.listdir(BG_PATH)]
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
-fill_status = False
 
 axis_color = "#ede5c0"
 slider_color = "#BF616A"
@@ -104,7 +111,7 @@ cluster_limit_slider = RangeSlider(
     cluster_limit_slider_ax, "Cluster Count", 1, 20, valinit=cluster_limit, valfmt="%d", color=slider_color
 )
 
-@profile
+# @profile
 def sliders_on_changed(val):
     global cluster_limit
     cluster_limit = (int(cluster_limit_slider.val[0]), int(cluster_limit_slider.val[1]))
@@ -122,13 +129,8 @@ def sliders_on_changed(val):
     global a_new
     a_new = np.append(a, [centre], axis=0)
 
-    global scatter_points
-    if not fill_status:
-        bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
-        bezier_curve.set_data(x, y)
-    else:
-        bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
-        ax_bez.fill(x, y, color="w", alpha=0.5)
+    bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
+    bezier_curve.set_data(x, y)
     scatter_points.set_offsets(
         a_new
     )
@@ -148,11 +150,16 @@ cluster_limit_slider.on_changed(sliders_on_changed)
 save_button_ax = fig.add_axes([0.85, 0.05, 0.1, 0.06])
 save_button = Button(save_button_ax, "Save", color="#aee3f2", hovercolor="#85cade")
 
-@profile
+# @profile
 def save_button_on_clicked(mouse_event):
-    global cluster_image, cluster_mask, cluster_pil, cache
-    save_generate(cluster_image, cluster_mask, cluster_pil)
-    cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
+    try:
+        global cluster_image, cluster_mask, cluster_pil, cache
+        save_generate(cluster_image, cluster_mask, cluster_pil)
+        cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
+    except Exception:
+        logger.error(traceback.print_exc())
+    else:
+        logger.debug("Saved successfully.")
 
 
 save_button.on_clicked(save_button_on_clicked)
@@ -162,22 +169,27 @@ save_button.on_clicked(sliders_on_changed)
 reset_button_ax = fig.add_axes([0.85, 0.12, 0.1, 0.06])
 reset_button = Button(reset_button_ax, "Reset", color="#aee3f2", hovercolor="#85cade")
 
-@profile
+# @profile
 def reset_button_on_clicked(mouse_event):
-    global bg_index
-    rad_slider.reset()
-    edgy_slider.reset()
-    c0_slider.reset()
-    c1_slider.reset()
-    scale_slider.reset()
-    points_slider.reset()
-    seeder_slider.reset()
-    cluster_limit_slider.set_val((3,7))
-    bg_index = 0
+    try:
+        global bg_index
+        rad_slider.reset()
+        edgy_slider.reset()
+        c0_slider.reset()
+        c1_slider.reset()
+        scale_slider.reset()
+        points_slider.reset()
+        seeder_slider.reset()
+        cluster_limit_slider.set_val((3,7))
+        bg_index = 0
 
-    global cluster_image, cluster_mask, cluster_pil
-    cluster_image, cluster_mask, cluster_pil = None, None, None
-    cluster_handler.set_data(np.flipud(np.array(plt.imread(BG_LIST[0]))))
+        global cluster_image, cluster_mask, cluster_pil
+        cluster_image, cluster_mask, cluster_pil = None, None, None
+        cluster_handler.set_data(np.flipud(np.array(plt.imread(BG_LIST[0]))))
+    except Exception:
+        logger.error(traceback.print_exc())
+    else:
+        logger.info("Reset state.")
 
 
 reset_button.on_clicked(reset_button_on_clicked)
@@ -190,10 +202,15 @@ background_button = Button(
     background_button_ax, "Background", color="#aee3f2", hovercolor="#85cade"
 )
 
-@profile
+# @profile
 def background_button_on_clicked(mouse_event):
-    global bg_index
-    bg_index = bg_index + 1 % (len(BG_LIST))
+    try:
+        global bg_index
+        bg_index = bg_index + 1 % (len(BG_LIST))
+    except Exception:
+        logger.error(traceback.print_exc())
+    else:
+        logger.info("Changed background.")
 
 
 background_button.on_clicked(background_button_on_clicked)
@@ -206,7 +223,7 @@ generate_button = Button(
     generate_button_ax, "Generate", color="#aee3f2", hovercolor="#85cade"
 )
 
-@profile
+# @profile
 def generate_button_on_clicked(mouse_event):
     try:
         bg_image = np.array(plt.imread(BG_LIST[bg_index]))
@@ -226,10 +243,13 @@ def generate_button_on_clicked(mouse_event):
         cluster_handler.set_data(np.flipud(cluster_image))
 
     except OutOfBoundsClusterError:
-        print("Error: Out of Bounds. Retry")
+        logger.warning("Out of Bounds. Retry")
     
     except Exception:
-        traceback.print_exc()
+        logger.error(traceback.print_exc())
+    
+    else:
+        logger.info("Generated new cluster.")
 
 
 generate_button.on_clicked(sliders_on_changed)
@@ -242,7 +262,7 @@ add_new_button = Button(
     add_new_button_ax, "Add Cluster", color="#aee3f2", hovercolor="#85cade"
 )
 
-@profile
+# @profile
 def add_new_button_on_clicked(mouse_event):
     try:
         
@@ -261,13 +281,16 @@ def add_new_button_on_clicked(mouse_event):
         cluster_handler.set_data(np.flipud(cluster_image))
 
     except ClusterNotGeneratedError:
-        print("Error: Generate cluster before adding a new one.")
+        logger.warning("Generate cluster before adding a new one.")
 
     except OutOfBoundsClusterError:
-        print("Error: Out of Bounds. Retry")
+        logger.warning("Out of Bounds. Retry")
 
     except Exception:
-        traceback.print_exc()
+        logger.error(traceback.print_exc())
+    
+    else:
+        logger.info("Added cluster.")
 
 
 add_new_button.on_clicked(sliders_on_changed)
@@ -280,7 +303,7 @@ update_button = Button(
     update_button_ax, "Update", color="#aee3f2", hovercolor="#85cade"
 )
 
-@profile
+# @profile
 def update_on_clicked(mouse_event):
     try:
         
@@ -310,34 +333,21 @@ def update_on_clicked(mouse_event):
         cluster_handler.set_data(np.flipud(cluster_image))
 
     except ClusterNotGeneratedError:
-        print("Error: Generate cluster before adding a new one.")
+        logger.warning("Generate cluster before adding a new one.")
 
     except OutOfBoundsClusterError:
-        print("Error: Out of Bounds. Retry")
+        logger.warning("Out of Bounds. Retry")
 
     except Exception:
-        traceback.print_exc()
+        logger.error(traceback.print_exc())
+   
+    else:
+        logger.info("Updated cluster.")
 
 
 update_button.on_clicked(sliders_on_changed)
 update_button.on_clicked(update_on_clicked)
 
-# -------------------------------------------------------------------- #
-
-fill_radios_ax = fig.add_axes([0.88, 0.5, 0.07, 0.10], facecolor=axis_color)
-fill_radios = RadioButtons(fill_radios_ax, ("No fill", "Fill"), active=0)
-
-
-def fill_radios_on_clicked(label):
-    global fill_status
-    if label == "Fill":
-        fill_status = True
-    else:
-        fill_status = False
-
-
-fill_radios.on_clicked(fill_radios_on_clicked)
-fill_radios.on_clicked(sliders_on_changed)
 # -------------------------------------------------------------------- #
 
 plt.show()
