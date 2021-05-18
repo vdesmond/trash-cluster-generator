@@ -155,8 +155,8 @@ def generate_cluster(
 
     offsets = [translate_offset(p, limits, dims) for p in init_list]
 
-    cache_for_update = (background[:], background_mask[:], classes_list, foreground_images[:], init_indexes)
-    
+    cache_for_update = (background[:], background_mask.copy(), classes_list, foreground_images[:], init_indexes)
+        
     try:
         final_background, modified_offs = compose(foreground_images, background, init_list, curve_center, offsets)
         
@@ -171,7 +171,7 @@ def generate_cluster(
         mask_new_pil = Image.fromarray(mask_new)
 
         return final_background, mask_new, mask_new_pil, cache_for_update
-    
+   
     except ValueError:
         if new_cluster:
             return None, None, None, None
@@ -190,7 +190,7 @@ def update_cluster(
     init_list = np.asarray(params)[init_indexes]
     offsets = [translate_offset(p, limits, dims) for p in init_list]
 
-    cache_for_update = (background[:], background_mask[:], classes_list, foregrounds[:], init_indexes)
+    cache_for_update = (background[:], background_mask.copy(), classes_list, foregrounds[:], init_indexes)
 
     try:
         final_background, modified_offs = compose(foregrounds, background, init_list, curve_center, offsets)
