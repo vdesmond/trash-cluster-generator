@@ -75,8 +75,10 @@ scatter_points = ax_bez.scatter(
 )
 
 cluster_handler = ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
-
 text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor='#a3be8c')
+
+count = len([f for f in os.listdir('.') if f.startswith(("label_"))])
+count_handler = plt.figtext(0.865, 0.80, f"Generated images: {count}" , fontsize=10, backgroundcolor='#cf9f91')
 
 undo_asset = plt.imread("./assets/undo.png")
 
@@ -175,6 +177,9 @@ def save_button_on_clicked(mouse_event):
         text_handler.set_text("Saved")
         text_handler.set_position((0.89, 0.70))
         text_handler.set_backgroundcolor("#a3be8c")
+        global count
+        count +=1
+        count_handler.set_text(f"Generated images: {count}")
 
 
 save_button.on_clicked(save_button_on_clicked)
