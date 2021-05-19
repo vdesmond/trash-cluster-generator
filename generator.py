@@ -266,7 +266,6 @@ def update_cluster(
     finally:
         history.pop()
         history.append(cache_for_update)
-        print(len(history))
 
 
 def undo_func():
@@ -274,7 +273,6 @@ def undo_func():
     try:
         old_cache = history.pop()
         background, background_mask, *_ = old_cache
-        print(len(history))
         return background, background_mask, Image.fromarray(background_mask), old_cache
 
     except IndexError:

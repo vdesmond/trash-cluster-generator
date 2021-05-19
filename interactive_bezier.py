@@ -17,6 +17,9 @@ logging.getLogger("PIL").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="DEBUG", fmt="%(asctime)s - %(message)s", datefmt="%H:%M:%S")
 
+import matplotlib
+matplotlib.use('Qt5Agg')
+
 DIM_X = 1280
 DIM_Y = 720
 LIMITS = [-5, 15]
@@ -66,13 +69,14 @@ bezier_handler = ax_bez.imshow(
 ax_bez.set_aspect(1 / (aspect_ratio))
 ax_img.set_aspect(1 / (aspect_ratio))
 
-(bezier_curve,) = ax_bez.plot(x, y, linewidth=1, color="w")
+(bezier_curve,) = ax_bez.plot(x, y, linewidth=1, color="w", zorder=1)
 scatter_points = ax_bez.scatter(
     a_new[:, 0],
     a_new[:, 1],
-    color="r",
+    color="orangered",
     marker=".",
     alpha=1,
+    zorder=2
 )
 
 cluster_handler = ax_img.imshow(
@@ -240,8 +244,12 @@ background_button = Button(
 def background_button_on_clicked(mouse_event):
     try:
         global bg_index
+<<<<<<< Updated upstream
         bg_index = bg_index + 1 % (len(BG_LIST))
         bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
+=======
+        bg_index = (bg_index + 1) % (len(BG_LIST))
+>>>>>>> Stashed changes
     except Exception:
         logger.error(traceback.print_exc())
         text_handler.set_text("Error. See logs")
