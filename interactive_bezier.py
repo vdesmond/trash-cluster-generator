@@ -2,10 +2,10 @@ import os
 import traceback
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RadioButtons, RangeSlider
+from matplotlib.widgets import Slider, Button, RangeSlider
 from bezier import *
 from generator import *
-from cluster_error import ClusterNotGeneratedError, OutOfBoundsClusterError
+from cluster_error import ClusterNotGeneratedError, OutOfBoundsClusterError, UndoError
 
 # from memory_profiler import profile
 import logging
@@ -46,7 +46,7 @@ seeder = 50
 c = [-1, 1]
 scale = 10
 points = 4
-cluster_limit = (3,7)
+cluster_limit = (5,10)
 
 bg_index = 0
 cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
@@ -77,6 +77,8 @@ scatter_points = ax_bez.scatter(
 cluster_handler = ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
 
 text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor='#a3be8c')
+
+undo_asset = plt.imread("./assets/undo.png")
 
 # Sliders
 rad_slider_ax = fig.add_axes([0.15, 0.42, 0.65, 0.03], facecolor=axis_color)
@@ -408,4 +410,45 @@ update_button.on_clicked(update_on_clicked)
 
 # -------------------------------------------------------------------- #
 
+undo_button_ax = fig.add_axes([0.885, 0.60, 0.05, 0.06])
+undo_button = Button(
+    undo_button_ax, "", image=undo_asset, color="#aee3f2", hovercolor="#85cade"
+)
+
+# @profile
+def undo_on_clicked(mouse_event):
+    try:
+        global cluster_image, cluster_mask, cluster_pil, cache
+
+        if cluster_image is None:
+            raise UndoError
+
+        cluster_image, cluster_mask, cluster_pil, cache = undo_func()
+
+        if cache is None:
+            raise UndoError
+
+        cluster_handler.set_data(np.flipud(cluster_image))
+    
+    except UndoError:
+        logger.warning("Cannot undo as there is no previous state.")
+        text_handler.set_text("Cannot undo")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#ede5c0")
+
+    except Exception:
+        logger.error(traceback.print_exc())
+        text_handler.set_text("Error. See logs")
+        text_handler.set_position((0.87, 0.70))
+        text_handler.set_backgroundcolor("#bf616a")
+
+    else:
+        logger.info("Cluster undone.")
+        text_handler.set_text("Undone")
+        text_handler.set_position((0.88, 0.70))
+        text_handler.set_backgroundcolor("#a3be8c")
+
+undo_button.on_clicked(sliders_on_changed)
+undo_button.on_clicked(undo_on_clicked)
+        
 plt.show()
