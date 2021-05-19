@@ -53,14 +53,15 @@ cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
 
 a = get_random_points(seeder, n=points, scale=scale) + c
 x, y, s = get_bezier_curve(a, rad=rad, edgy=edgy)
-cooordinates = np.array((x, y)).T
 centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
 a_new = np.append(a, [centre], axis=0)
 
 ax_bez.set_xlim(LIMITS)
 ax_bez.set_ylim(LIMITS)
 
-bezier_handler = ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
+bezier_handler = ax_bez.imshow(
+    plt.imread(BG_LIST[bg_index]), extent=EXTENT, interpolation="none"
+)
 
 ax_bez.set_aspect(1 / (aspect_ratio))
 ax_img.set_aspect(1 / (aspect_ratio))
@@ -75,7 +76,7 @@ scatter_points = ax_bez.scatter(
 )
 
 cluster_handler = ax_img.imshow(
-    np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower"
+    np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower", interpolation="none"
 )
 text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor="#a3be8c")
 
@@ -139,13 +140,12 @@ def sliders_on_changed(val):
         + c
     )
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
-    cooordinates = np.array((x, y)).T
     global centre
     centre = np.array([(np.max(x) + np.min(x)) / 2, (np.max(y) + np.min(y)) / 2])
     global a_new
     a_new = np.append(a, [centre], axis=0)
 
-    bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
+    # bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
     bezier_curve.set_data(x, y)
     scatter_points.set_offsets(a_new)
     fig.canvas.draw_idle()
@@ -241,6 +241,7 @@ def background_button_on_clicked(mouse_event):
     try:
         global bg_index
         bg_index = bg_index + 1 % (len(BG_LIST))
+        bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
     except Exception:
         logger.error(traceback.print_exc())
         text_handler.set_text("Error. See logs")
