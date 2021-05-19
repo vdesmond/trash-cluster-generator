@@ -18,3 +18,8 @@ class ClusterNotGeneratedError(Error):
     """Raised when Add Cluster is called before Generate Cluster"""
 
     pass
+
+class UndoError(Error):
+    """Raised when Add Cluster is called before Generate Cluster"""
+
+    pass
