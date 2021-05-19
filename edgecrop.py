@@ -19,11 +19,17 @@ import numpy as np
 #     img = img.crop((left-2, top-2, right+2, bottom+2))
 #     return img
 
+
 def edgecrop(img):
     image_data_bw = img.max(axis=2)
-    non_empty_columns = np.where(image_data_bw.max(axis=0)>0)[0]
-    non_empty_rows = np.where(image_data_bw.max(axis=1)>0)[0]
-    cropBox = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
+    non_empty_columns = np.where(image_data_bw.max(axis=0) > 0)[0]
+    non_empty_rows = np.where(image_data_bw.max(axis=1) > 0)[0]
+    cropBox = (
+        min(non_empty_rows),
+        max(non_empty_rows),
+        min(non_empty_columns),
+        max(non_empty_columns),
+    )
 
-    image_data_new = img[cropBox[0]:cropBox[1]+1, cropBox[2]:cropBox[3]+1 , :]
+    image_data_new = img[cropBox[0] : cropBox[1] + 1, cropBox[2] : cropBox[3] + 1, :]
     return image_data_new

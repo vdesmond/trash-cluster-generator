@@ -117,5 +117,6 @@ def bezier_plot(fill=True, rad=0.5, edgy=0.05):
     # plt.axis("off")
     fig.savefig(os.path.join(os.getcwd(), f"Bezier"), bbox_inches="tight")
 
+
 if __name__ == "__main__":
     bezier_plot()

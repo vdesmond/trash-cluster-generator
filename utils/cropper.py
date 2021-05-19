@@ -1,9 +1,8 @@
-
 from PIL import Image, ImageChops
 import glob
 from tqdm import tqdm
 
-total = glob.glob('/home/vigneshdesmond/Desktop/taco-dataset/pngtest/*')
+total = glob.glob("/home/vigneshdesmond/Desktop/taco-dataset/pngtest/*")
 counter = 0
 
 for i, filename in enumerate(tqdm(total)):
@@ -22,6 +21,6 @@ for i, filename in enumerate(tqdm(total)):
     top = min(ylist)
     bottom = max(ylist)
 
-    img = img.crop((left-10, top-10, right+10, bottom+10))
-    img.save(filename[:-4] + '-cropped-'+ str(i) + '.png')
+    img = img.crop((left - 10, top - 10, right + 10, bottom + 10))
+    img.save(filename[:-4] + "-cropped-" + str(i) + ".png")
 print("All pngs cropped to fit.\n")

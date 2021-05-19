@@ -46,7 +46,7 @@ seeder = 50
 c = [-1, 1]
 scale = 10
 points = 4
-cluster_limit = (5,10)
+cluster_limit = (5, 10)
 
 bg_index = 0
 cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
@@ -65,7 +65,7 @@ bezier_handler = ax_bez.imshow(plt.imread(BG_LIST[bg_index]), extent=EXTENT)
 ax_bez.set_aspect(1 / (aspect_ratio))
 ax_img.set_aspect(1 / (aspect_ratio))
 
-bezier_curve, = ax_bez.plot(x, y, linewidth=1, color="w")
+(bezier_curve,) = ax_bez.plot(x, y, linewidth=1, color="w")
 scatter_points = ax_bez.scatter(
     a_new[:, 0],
     a_new[:, 1],
@@ -74,11 +74,15 @@ scatter_points = ax_bez.scatter(
     alpha=1,
 )
 
-cluster_handler = ax_img.imshow(np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower")
-text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor='#a3be8c')
+cluster_handler = ax_img.imshow(
+    np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower"
+)
+text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor="#a3be8c")
 
-count = len([f for f in os.listdir('.') if f.startswith(("label_"))])
-count_handler = plt.figtext(0.865, 0.80, f"Generated images: {count}" , fontsize=10, backgroundcolor='#cf9f91')
+count = len([f for f in os.listdir(".") if f.startswith("label_")])
+count_handler = plt.figtext(
+    0.865, 0.80, f"Generated images: {count}", fontsize=10, backgroundcolor="#cf9f91"
+)
 
 undo_asset = plt.imread("./assets/undo.png")
 
@@ -114,7 +118,13 @@ seeder_slider = Slider(
 
 cluster_limit_slider_ax = fig.add_axes([0.15, 0.07, 0.65, 0.03], facecolor=axis_color)
 cluster_limit_slider = RangeSlider(
-    cluster_limit_slider_ax, "Cluster Count", 1, 20, valinit=cluster_limit, valfmt="%d", color=slider_color
+    cluster_limit_slider_ax,
+    "Cluster Count",
+    1,
+    20,
+    valinit=cluster_limit,
+    valfmt="%d",
+    color=slider_color,
 )
 
 # @profile
@@ -127,7 +137,7 @@ def sliders_on_changed(val):
     a = (
         get_random_points(int(seeder_slider.val), n=int(points_slider.val), scale=scale)
         + c
-    )    
+    )
     x, y, _ = get_bezier_curve(a, rad=rad_slider.val, edgy=edgy_slider.val)
     cooordinates = np.array((x, y)).T
     global centre
@@ -137,9 +147,7 @@ def sliders_on_changed(val):
 
     bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
     bezier_curve.set_data(x, y)
-    scatter_points.set_offsets(
-        a_new
-    )
+    scatter_points.set_offsets(a_new)
     fig.canvas.draw_idle()
 
 
@@ -178,7 +186,7 @@ def save_button_on_clicked(mouse_event):
         text_handler.set_position((0.89, 0.70))
         text_handler.set_backgroundcolor("#a3be8c")
         global count
-        count +=1
+        count += 1
         count_handler.set_text(f"Generated images: {count}")
 
 
@@ -200,7 +208,7 @@ def reset_button_on_clicked(mouse_event):
         scale_slider.reset()
         points_slider.reset()
         seeder_slider.reset()
-        cluster_limit_slider.set_val((3,7))
+        cluster_limit_slider.set_val((3, 7))
         bg_index = 0
 
         global cluster_image, cluster_mask, cluster_pil
@@ -267,8 +275,10 @@ def generate_button_on_clicked(mouse_event):
         params = list(zip(x, y))
         params.append(tuple(centre))
         global cluster_image, cluster_mask, cluster_pil, cache
-        cluster_image, cluster_mask, cluster_pil, cache = generate_cluster(bg_image, bg_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y))
-        
+        cluster_image, cluster_mask, cluster_pil, cache = generate_cluster(
+            bg_image, bg_mask, params, cluster_limit, LIMITS, (DIM_X, DIM_Y)
+        )
+
         if not cluster_image:
             raise OutOfBoundsClusterError
 
@@ -285,7 +295,7 @@ def generate_button_on_clicked(mouse_event):
         text_handler.set_text("Error. See logs")
         text_handler.set_position((0.87, 0.70))
         text_handler.set_backgroundcolor("#bf616a")
-    
+
     else:
         logger.info("Generated new cluster.")
         text_handler.set_text("Generated")
@@ -306,7 +316,7 @@ add_new_button = Button(
 # @profile
 def add_new_button_on_clicked(mouse_event):
     try:
-        
+
         params = list(zip(x, y))
         params.append(tuple(centre))
         global cluster_image, cluster_mask, cluster_pil, cache
@@ -314,8 +324,16 @@ def add_new_button_on_clicked(mouse_event):
         if cluster_image is None:
             raise ClusterNotGeneratedError
 
-        cluster_image, cluster_mask, cluster_pil, cache = generate_cluster(np.array(cluster_image), cluster_mask, params, cluster_limit, LIMITS, (DIM_X,DIM_Y), new_cluster=False)
-        
+        cluster_image, cluster_mask, cluster_pil, cache = generate_cluster(
+            np.array(cluster_image),
+            cluster_mask,
+            params,
+            cluster_limit,
+            LIMITS,
+            (DIM_X, DIM_Y),
+            new_cluster=False,
+        )
+
         if np.array_equal(cluster_image, cache[0]):
             raise OutOfBoundsClusterError
 
@@ -338,7 +356,7 @@ def add_new_button_on_clicked(mouse_event):
         text_handler.set_text("Error. See logs.")
         text_handler.set_position((0.87, 0.70))
         text_handler.set_backgroundcolor("#bf616a")
-    
+
     else:
         logger.info("Added cluster.")
         text_handler.set_text("Added")
@@ -359,7 +377,7 @@ update_button = Button(
 # @profile
 def update_on_clicked(mouse_event):
     try:
-        
+
         params = list(zip(x, y))
         params.append(tuple(centre))
         global cluster_image, cluster_mask, cluster_pil, cache
@@ -374,12 +392,14 @@ def update_on_clicked(mouse_event):
         )
 
         if np.array_equal(bg_mask, cache[1]):
-            new_cluster=True
+            new_cluster = True
         else:
-            new_cluster=False
+            new_cluster = False
 
-        cluster_image, cluster_mask, cluster_pil, cache = update_cluster(*cache, params, LIMITS, (DIM_X,DIM_Y), new_cluster)
-        
+        cluster_image, cluster_mask, cluster_pil, cache = update_cluster(
+            *cache, params, LIMITS, (DIM_X, DIM_Y), new_cluster
+        )
+
         if np.array_equal(cluster_image, cache[0]):
             raise OutOfBoundsClusterError
 
@@ -402,7 +422,7 @@ def update_on_clicked(mouse_event):
         text_handler.set_text("Error. See logs")
         text_handler.set_position((0.87, 0.70))
         text_handler.set_backgroundcolor("#bf616a")
-   
+
     else:
         logger.info("Updated cluster.")
         text_handler.set_text("Updated")
@@ -434,7 +454,7 @@ def undo_on_clicked(mouse_event):
             raise UndoError
 
         cluster_handler.set_data(np.flipud(cluster_image))
-    
+
     except UndoError:
         logger.warning("Cannot undo as there is no previous state.")
         text_handler.set_text("Cannot undo")
@@ -453,7 +473,8 @@ def undo_on_clicked(mouse_event):
         text_handler.set_position((0.88, 0.70))
         text_handler.set_backgroundcolor("#a3be8c")
 
+
 undo_button.on_clicked(sliders_on_changed)
 undo_button.on_clicked(undo_on_clicked)
-        
+
 plt.show()

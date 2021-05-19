@@ -18,10 +18,17 @@ from edgecrop import edgecrop
 foreground_full_list = glob.glob(os.getcwd() + "/trashnet/*")
 
 cmp = matplotlib.colors.ListedColormap(
-    ["tan", "cyan", "pink", "forestgreen", "blue"] #? Beach, Other Background, Glass, Metal, Plastic
+    [
+        "tan",
+        "cyan",
+        "pink",
+        "forestgreen",
+        "blue",
+    ]  # ? Beach, Other Background, Glass, Metal, Plastic
 )
 
 history = deque()
+
 
 def foregroundAug(foreground):
     # ! add scale
@@ -56,7 +63,6 @@ def compose(foregrounds, background, init, center, offset_list):
         current_init = init[i]
         theta = np.arctan2(current_init[1] - center[1], current_init[0] - center[0])
         angle = np.degrees(theta)
-        
 
         # Offset
         offset = offset_list[i]
@@ -66,7 +72,7 @@ def compose(foregrounds, background, init, center, offset_list):
         elif -90 <= angle < 0:
             offset_new = offset[0] - (im_w // 2), offset[1] - (im_h // 2)
         elif -180 <= angle <= 90:
-            offset_new = offset[0], offset[1] - ( im_h // 2)
+            offset_new = offset[0], offset[1] - (im_h // 2)
         else:
             offset_new = offset
 
@@ -75,7 +81,7 @@ def compose(foregrounds, background, init, center, offset_list):
         )  # RGBA ==> RGB alpha channel
 
         offset_new_list.append(offset_new)
-    
+
     background = flipbg.transpose(Image.FLIP_TOP_BOTTOM)
 
     return background, offset_new_list
@@ -109,11 +115,9 @@ def getForegroundMask(
 
         roi_mask = np.logical_and(
             np.logical_or(
-                np.logical_or(
-                (roi == 1).astype(bool), (roi == 2).astype(bool)
-                ), (roi != classes_list[i]).astype(bool)
-            )    
-            ,
+                np.logical_or((roi == 1).astype(bool), (roi == 2).astype(bool)),
+                (roi != classes_list[i]).astype(bool),
+            ),
             (current_foreground != 0).astype(bool),
         )
 
@@ -128,17 +132,24 @@ def getForegroundMask(
 
 
 def generate_cluster(
-    background, background_mask, params, climit, limits, dims, foreground_full_list=foreground_full_list, new_cluster=True
-):  
+    background,
+    background_mask,
+    params,
+    climit,
+    limits,
+    dims,
+    foreground_full_list=foreground_full_list,
+    new_cluster=True,
+):
     if background is None:
         return None, None, None, None
-    
+
     # Cluster limits
-    cluster_low_limit,  cluster_high_limit = climit
+    cluster_low_limit, cluster_high_limit = climit
     foreground_list = random.sample(
         foreground_full_list, random.randint(cluster_low_limit, cluster_high_limit)
     )
-    
+
     classes_list = [x.rsplit("_", 1)[0][-1] for x in foreground_list]
     classes_list = [int(i) for i in classes_list]
 
@@ -155,29 +166,42 @@ def generate_cluster(
 
     offsets = [translate_offset(p, limits, dims) for p in init_list]
 
-    cache_for_update = (background[:], background_mask.copy(), classes_list, foreground_images[:], init_indexes)
-        
+    cache_for_update = (
+        background[:],
+        background_mask.copy(),
+        classes_list,
+        foreground_images[:],
+        init_indexes,
+    )
+
     try:
-        final_background, modified_offs = compose(foreground_images, background, init_list, curve_center, offsets)
-        
+        final_background, modified_offs = compose(
+            foreground_images, background, init_list, curve_center, offsets
+        )
+
         mask_new = getForegroundMask(
             foreground_images,
             background,
             background_mask,
             classes_list,
             modified_offs,
-            new_cluster
+            new_cluster,
         )
         mask_new_pil = Image.fromarray(mask_new)
 
         return final_background, mask_new, mask_new_pil, cache_for_update
-   
+
     except ValueError:
         if new_cluster:
             return None, None, None, None
         else:
-            return background, background_mask, Image.fromarray(background_mask), cache_for_update
-    
+            return (
+                background,
+                background_mask,
+                Image.fromarray(background_mask),
+                cache_for_update,
+            )
+
     except Exception:
         traceback.print_exc()
 
@@ -187,37 +211,58 @@ def generate_cluster(
                 for i in range(len(history)):
                     history.pop()
             history.append(cache_for_update)
-            print(len(history))
+
 
 def update_cluster(
-    background, background_mask, classes_list, foregrounds, init_indexes, params, limits, dims, new_cluster
+    background,
+    background_mask,
+    classes_list,
+    foregrounds,
+    init_indexes,
+    params,
+    limits,
+    dims,
+    new_cluster,
 ):
 
     curve_center = params[-1]
     init_list = np.asarray(params)[init_indexes]
     offsets = [translate_offset(p, limits, dims) for p in init_list]
 
-    cache_for_update = (background[:], background_mask.copy(), classes_list, foregrounds[:], init_indexes)
+    cache_for_update = (
+        background[:],
+        background_mask.copy(),
+        classes_list,
+        foregrounds[:],
+        init_indexes,
+    )
 
     try:
-        final_background, modified_offs = compose(foregrounds, background, init_list, curve_center, offsets)
+        final_background, modified_offs = compose(
+            foregrounds, background, init_list, curve_center, offsets
+        )
         mask_new = getForegroundMask(
             foregrounds,
             background,
             background_mask,
             classes_list,
             modified_offs,
-            new_cluster
+            new_cluster,
         )
         mask_new_pil = Image.fromarray(mask_new)
         return final_background, mask_new, mask_new_pil, cache_for_update
-    
+
     except ValueError:
-        return background, background_mask, Image.fromarray(background_mask), cache_for_update
-    
+        return (
+            background,
+            background_mask,
+            Image.fromarray(background_mask),
+            cache_for_update,
+        )
+
     except Exception:
         traceback.print_exc()
-    
+
     finally:
         history.pop()
         history.append(cache_for_update)
@@ -237,6 +282,7 @@ def undo_func():
 
     except Exception:
         traceback.print_exc()
+
 
 def save_generate(final_background, mask_new, mask_new_pil):
     savedate = int(time.time() * 10)
