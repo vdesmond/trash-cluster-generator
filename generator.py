@@ -10,6 +10,7 @@ import matplotlib.colors
 import matplotlib.pyplot as plt
 import skimage.transform as transform
 import traceback
+from collections import deque
 
 from rangemap import translate_offset
 from edgecrop import edgecrop
@@ -19,6 +20,8 @@ foreground_full_list = glob.glob(os.getcwd() + "/trashnet/*")
 cmp = matplotlib.colors.ListedColormap(
     ["tan", "cyan", "pink", "forestgreen", "blue"] #? Beach, Other Background, Glass, Metal, Plastic
 )
+
+history = deque()
 
 def foregroundAug(foreground):
     # ! add scale
@@ -126,7 +129,7 @@ def getForegroundMask(
 
 def generate_cluster(
     background, background_mask, params, climit, limits, dims, foreground_full_list=foreground_full_list, new_cluster=True
-):
+):  
     if background is None:
         return None, None, None, None
     
@@ -176,8 +179,15 @@ def generate_cluster(
             return background, background_mask, Image.fromarray(background_mask), cache_for_update
     
     except Exception:
-        traceback.print_exc()   
+        traceback.print_exc()
 
+    finally:
+        if cache_for_update[0] is not None:
+            if len(history) >= 1 and new_cluster:
+                for i in range(len(history)):
+                    history.pop()
+            history.append(cache_for_update)
+            print(len(history))
 
 def update_cluster(
     background, background_mask, classes_list, foregrounds, init_indexes, params, limits, dims, new_cluster
@@ -207,8 +217,26 @@ def update_cluster(
     
     except Exception:
         traceback.print_exc()
-
     
+    finally:
+        history.pop()
+        history.append(cache_for_update)
+        print(len(history))
+
+
+def undo_func():
+
+    try:
+        old_cache = history.pop()
+        background, background_mask, *_ = old_cache
+        print(len(history))
+        return background, background_mask, Image.fromarray(background_mask), old_cache
+
+    except IndexError:
+        return None, None, None, None
+
+    except Exception:
+        traceback.print_exc()
 
 def save_generate(final_background, mask_new, mask_new_pil):
     savedate = int(time.time() * 10)
