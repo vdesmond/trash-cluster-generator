@@ -4,8 +4,8 @@ import os
 
 from PIL import Image
 
-for file in os.listdir("./beach_labels"):
-    im = Image.open(os.path.join(os.getcwd(), "beach_labels", file))
+for file in os.listdir("./bg_labels"):
+    im = Image.open(os.path.join(os.getcwd(), "bg_labels", file))
     beach = 0
     sea = 0
     unknown = 0

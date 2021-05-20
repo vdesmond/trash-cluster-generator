@@ -14,7 +14,7 @@ from PIL import Image
 
 from .gen_utils import edgecrop, init_index_gen, translate_offset
 
-foreground_full_list = glob.glob(os.getcwd() + "/trashnet/*")
+foreground_full_list = glob.glob(os.getcwd() + "/foregrounds/*")
 
 # ? Beach, Other Background, Glass, Metal, Plastic
 
