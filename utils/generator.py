@@ -16,6 +16,8 @@ from .gen_utils import edgecrop, init_index_gen, translate_offset
 
 foreground_full_list = glob.glob(os.getcwd() + "/trashnet/*")
 
+# ? Beach, Other Background, Glass, Metal, Plastic
+
 cmp = matplotlib.colors.ListedColormap(
     [
         "tan",
@@ -23,8 +25,18 @@ cmp = matplotlib.colors.ListedColormap(
         "pink",
         "forestgreen",
         "blue",
-    ]  # ? Beach, Other Background, Glass, Metal, Plastic
-)
+    ]  # ? default colors
+) 
+
+# cmp = matplotlib.colors.ListedColormap(
+#     [
+#         "#EBCB8B",
+#         "#88C0D0",
+#         "#B48EAD",
+#         "#A3BE8C",
+#         "#BF616A",
+#     ]  # ? Banner colors
+# )
 
 history = deque()
 
