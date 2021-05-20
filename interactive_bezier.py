@@ -244,12 +244,8 @@ background_button = Button(
 def background_button_on_clicked(mouse_event):
     try:
         global bg_index
-<<<<<<< Updated upstream
         bg_index = bg_index + 1 % (len(BG_LIST))
         bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
-=======
-        bg_index = (bg_index + 1) % (len(BG_LIST))
->>>>>>> Stashed changes
     except Exception:
         logger.error(traceback.print_exc())
         text_handler.set_text("Error. See logs")
