@@ -14,6 +14,8 @@ from utils.cluster_error import (ClusterNotGeneratedError,
 from utils.generator import (generate_cluster, save_generate, undo_func,
                              update_cluster)
 
+from collections import Counter
+
 # ? Configure logging
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logging.getLogger("PIL").setLevel(logging.WARNING)
@@ -83,9 +85,15 @@ cluster_handler = ax_img.imshow(
 )
 text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor="#a3be8c")
 
+#? Set keys here
+class_dict = {"G:": (0.865,"#bdae93"), "M:": (0.906,"#81a1c1"), "P:": (0.947,"#b48ead")}
+class_handlers = []
+for ind, (cname, textarg) in enumerate(class_dict.items()):
+    class_handlers.append(plt.figtext(textarg[0], 0.80, cname+"0".rjust(3), fontsize=10, backgroundcolor=textarg[1]))
+
 count = len([f for f in os.listdir(".") if f.startswith("label_")])
 count_handler = plt.figtext(
-    0.865, 0.80, f"Generated images: {count}", fontsize=10, backgroundcolor="#cf9f91"
+    0.865, 0.76, f"Generated images: {count}", fontsize=10, backgroundcolor="#cf9f91"
 )
 
 undo_asset = plt.imread("./assets/undo.png")
@@ -148,7 +156,6 @@ def sliders_on_changed(val):
     global a_new
     a_new = np.append(a, [centre], axis=0)
 
-    # bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
     bezier_curve.set_data(x, y)
     scatter_points.set_offsets(a_new)
     fig.canvas.draw_idle()
@@ -221,6 +228,8 @@ def reset_button_on_clicked(mouse_event):
         global cluster_image, cluster_mask, cluster_pil
         cluster_image, cluster_mask, cluster_pil = None, None, None
         cluster_handler.set_data(np.flipud(np.array(plt.imread(BG_LIST[0]))))
+        bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
+
     except Exception:
         logger.error(traceback.print_exc())
         text_handler.set_text("Error. See logs")
@@ -231,6 +240,8 @@ def reset_button_on_clicked(mouse_event):
         text_handler.set_text("Reset")
         text_handler.set_position((0.89, 0.70))
         text_handler.set_backgroundcolor("#a3be8c")
+        for ind, cname in enumerate(class_dict):
+            class_handlers[ind].set_text(cname + "0".rjust(3))
 
 
 reset_button.on_clicked(reset_button_on_clicked)
@@ -309,6 +320,11 @@ def generate_button_on_clicked(mouse_event):
         text_handler.set_text("Generated")
         text_handler.set_position((0.88, 0.70))
         text_handler.set_backgroundcolor("#a3be8c")
+        
+        global class_count
+        class_count = Counter(cache[2])
+        for ind, cname in enumerate(class_dict):
+            class_handlers[ind].set_text(cname + str(class_count[ind+3]).rjust(3))            
 
 
 generate_button.on_clicked(sliders_on_changed)
@@ -371,6 +387,11 @@ def add_new_button_on_clicked(mouse_event):
         text_handler.set_position((0.89, 0.70))
         text_handler.set_backgroundcolor("#a3be8c")
 
+        global class_count
+        class_count += Counter(cache[2])
+        for ind, cname in enumerate(class_dict):
+            class_handlers[ind].set_text(cname + str(class_count[ind+3]).rjust(3)) 
+
 
 add_new_button.on_clicked(sliders_on_changed)
 add_new_button.on_clicked(add_new_button_on_clicked)
@@ -403,6 +424,8 @@ def update_on_clicked(mouse_event):
             new_cluster = True
         else:
             new_cluster = False
+
+        old_class_list = cache[2][:]
 
         cluster_image, cluster_mask, cluster_pil, cache = update_cluster(
             *cache, params, LIMITS, (DIM_X, DIM_Y), new_cluster
@@ -480,6 +503,11 @@ def undo_on_clicked(mouse_event):
         text_handler.set_text("Undone")
         text_handler.set_position((0.88, 0.70))
         text_handler.set_backgroundcolor("#a3be8c")
+    
+        global class_count
+        class_count -= Counter(cache[2])
+        for ind, cname in enumerate(class_dict):
+            class_handlers[ind].set_text(cname + str(class_count[ind+3]).rjust(3))
 
 
 undo_button.on_clicked(sliders_on_changed)
