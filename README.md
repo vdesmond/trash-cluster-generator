@@ -5,6 +5,5 @@
         <img src="docs/banner.png" alt="Carbon">
     </a>
     <br>
+    <br>
 </p>
-
-(in progress)

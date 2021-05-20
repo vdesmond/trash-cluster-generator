@@ -31,7 +31,7 @@ DIM_Y = 720
 LIMITS = [-5, 15]
 EXTENT = LIMITS * 2
 aspect_ratio = DIM_X / DIM_Y
-BG_PATH = "./beach_images/"
+BG_PATH = "./bg_images/"
 BG_LIST = [BG_PATH + s for s in os.listdir(BG_PATH)]
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
