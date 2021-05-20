@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+
 from PIL import Image
 
 for file in os.listdir("./beach_labels"):

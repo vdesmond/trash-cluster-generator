@@ -1,15 +1,18 @@
-import os
-import traceback
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RangeSlider
-from bezier import *
-from generator import *
-from cluster_error import ClusterNotGeneratedError, OutOfBoundsClusterError, UndoError
-
 # from memory_profiler import profile
 import logging
+import os
+import traceback
+
 import coloredlogs
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.widgets import Button, RangeSlider, Slider
+
+from utils.bezier import *
+from utils.cluster_error import (ClusterNotGeneratedError,
+                                 OutOfBoundsClusterError, UndoError)
+from utils.generator import (generate_cluster, save_generate, undo_func,
+                             update_cluster)
 
 # ? Configure logging
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
@@ -18,7 +21,8 @@ logger = logging.getLogger(__name__)
 coloredlogs.install(level="DEBUG", fmt="%(asctime)s - %(message)s", datefmt="%H:%M:%S")
 
 import matplotlib
-matplotlib.use('Qt5Agg')
+
+matplotlib.use("Qt5Agg")
 
 DIM_X = 1280
 DIM_Y = 720
@@ -71,12 +75,7 @@ ax_img.set_aspect(1 / (aspect_ratio))
 
 (bezier_curve,) = ax_bez.plot(x, y, linewidth=1, color="w", zorder=1)
 scatter_points = ax_bez.scatter(
-    a_new[:, 0],
-    a_new[:, 1],
-    color="orangered",
-    marker=".",
-    alpha=1,
-    zorder=2
+    a_new[:, 0], a_new[:, 1], color="orangered", marker=".", alpha=1, zorder=2
 )
 
 cluster_handler = ax_img.imshow(
@@ -172,6 +171,10 @@ save_button = Button(save_button_ax, "Save", color="#aee3f2", hovercolor="#85cad
 def save_button_on_clicked(mouse_event):
     try:
         global cluster_image, cluster_mask, cluster_pil, cache
+
+        if cluster_image is None:
+            raise ClusterNotGeneratedError
+
         save_generate(cluster_image, cluster_mask, cluster_pil)
         cluster_image, cluster_mask, cluster_pil, cache = None, None, None, None
     except ClusterNotGeneratedError:
@@ -244,7 +247,7 @@ background_button = Button(
 def background_button_on_clicked(mouse_event):
     try:
         global bg_index
-        bg_index = bg_index + 1 % (len(BG_LIST))
+        bg_index = (bg_index + 1) % len(BG_LIST)
         bezier_handler.set_data(plt.imread(BG_LIST[bg_index]))
     except Exception:
         logger.error(traceback.print_exc())

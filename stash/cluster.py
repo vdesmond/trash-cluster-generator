@@ -1,10 +1,10 @@
+import glob
+import random
+
 import cv2
 import numpy as np
-import random
 import scipy.stats as stats
-import glob
 from rotateimg import *
-
 
 PATH = "../pngs"
 PATCH_SIZE = 1000

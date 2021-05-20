@@ -6,6 +6,9 @@ img_*
 label_*
 rgb_label_*
 
+# generated images and labels
+*.zip
+
 # Memory profile logs
 memory-profile.png
 mprofile_*

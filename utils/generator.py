@@ -1,19 +1,18 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
 import glob
-from PIL import Image
-import numpy as np
+import os
 import random
 import time
-import matplotlib.colors
-import matplotlib.pyplot as plt
-import skimage.transform as transform
 import traceback
 from collections import deque
 
-from rangemap import translate_offset
-from edgecrop import edgecrop
+import matplotlib.colors
+import matplotlib.pyplot as plt
+import numpy as np
+import skimage.transform as transform
+from PIL import Image
+
+from .gen_utils import edgecrop, init_index_gen, translate_offset
 
 foreground_full_list = glob.glob(os.getcwd() + "/trashnet/*")
 
@@ -153,7 +152,7 @@ def generate_cluster(
     classes_list = [x.rsplit("_", 1)[0][-1] for x in foreground_list]
     classes_list = [int(i) for i in classes_list]
 
-    init_indexes = random.sample(range(len(params[:-1])), len(foreground_list))
+    init_indexes = init_index_gen(range(len(params[:-1])), len(foreground_list))
     init_list = np.asarray(params)[init_indexes]
     curve_center = params[-1]
 

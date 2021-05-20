@@ -1,8 +1,9 @@
-import numpy as np
-from scipy.special import binom
-import matplotlib.pyplot as plt
+# -*- coding: utf-8 -*-
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.special import binom
 
 bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 

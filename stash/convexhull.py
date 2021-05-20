@@ -7,10 +7,11 @@ Original file is located at
     https://colab.research.google.com/drive/1R25DpMm5FHntGGCXKV111gHSr2L_8yEE
 """
 
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
 import os
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def binary_thresh(img):

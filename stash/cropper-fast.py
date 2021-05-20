@@ -1,8 +1,9 @@
-from PIL import Image, ImageChops
-import glob
-from tqdm import tqdm
 import concurrent.futures
+import glob
 import os
+
+from PIL import Image, ImageChops
+from tqdm import tqdm
 
 
 def cropper(filename):
