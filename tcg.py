@@ -39,15 +39,15 @@ bernstein = lambda n, k, t: binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 axis_color = "#ede5c0"
 slider_color = "#bf616a"
 
-fig = plt.figure("Bezier Closed Curve Cluster Generator", (14, 8))
+fig = plt.figure("TCG", (14, 8))
 fig.suptitle(
-    "Interactive Cluster Generator using Random Bezier Closed Curves", fontsize=12
+    "Trash Cluster Generator", fontsize=14, y=0.95
 )
 fig.patch.set_facecolor("#D8DEE9")
 ax_bez = fig.add_subplot(121)
 ax_img = fig.add_subplot(122)
 
-fig.subplots_adjust(left=0.15, bottom=0.45, top=0.99, right=0.85)
+fig.subplots_adjust(left=0.12, bottom=0.45, top=0.99, right=0.82)
 
 rad = 0.5
 edgy = 0.5
@@ -83,52 +83,52 @@ scatter_points = ax_bez.scatter(
 cluster_handler = ax_img.imshow(
     np.flipud(np.array(plt.imread(BG_LIST[0]))), origin="lower", interpolation="none"
 )
-text_handler = plt.figtext(0.89, 0.70, "Ready", fontsize=14, backgroundcolor="#a3be8c")
+text_handler = plt.figtext(0.88, 0.70, " Ready ", fontsize=14, backgroundcolor="#a3be8c")
 
 #? Set keys here
-class_dict = {"G:": (0.865,"#bdae93"), "M:": (0.906,"#81a1c1"), "P:": (0.947,"#b48ead")}
+class_dict = {"G:": (0.86,"#bdae93"), "M:": (0.901,"#81a1c1"), "P:": (0.942,"#b48ead")}
 class_handlers = []
 for ind, (cname, textarg) in enumerate(class_dict.items()):
     class_handlers.append(plt.figtext(textarg[0], 0.80, cname+"0".rjust(3), fontsize=10, backgroundcolor=textarg[1]))
 
 count = len([f for f in os.listdir(".") if f.startswith("label_")])
 count_handler = plt.figtext(
-    0.865, 0.76, f"Generated images: {count}", fontsize=10, backgroundcolor="#cf9f91"
+    0.86, 0.76, f"Generated images: {count}", fontsize=10, backgroundcolor="#cf9f91"
 )
 
 undo_asset = plt.imread("./assets/undo.png")
 
 # Sliders
-rad_slider_ax = fig.add_axes([0.15, 0.42, 0.65, 0.03], facecolor=axis_color)
+rad_slider_ax = fig.add_axes([0.12, 0.42, 0.65, 0.03], facecolor=axis_color)
 rad_slider = Slider(rad_slider_ax, "Radius", 0.0, 1.0, valinit=rad, color=slider_color)
 
-edgy_slider_ax = fig.add_axes([0.15, 0.37, 0.65, 0.03], facecolor=axis_color)
+edgy_slider_ax = fig.add_axes([0.12, 0.37, 0.65, 0.03], facecolor=axis_color)
 edgy_slider = Slider(
     edgy_slider_ax, "Edginess", 0.0, 5.0, valinit=edgy, color=slider_color
 )
 
-c0_slider_ax = fig.add_axes([0.15, 0.32, 0.65, 0.03], facecolor=axis_color)
+c0_slider_ax = fig.add_axes([0.12, 0.32, 0.65, 0.03], facecolor=axis_color)
 c0_slider = Slider(c0_slider_ax, "Move X", -7.0, 16.0, valinit=c[0], color=slider_color)
 
-c1_slider_ax = fig.add_axes([0.15, 0.27, 0.65, 0.03], facecolor=axis_color)
+c1_slider_ax = fig.add_axes([0.12, 0.27, 0.65, 0.03], facecolor=axis_color)
 c1_slider = Slider(c1_slider_ax, "Move Y", -7.0, 16.0, valinit=c[1], color=slider_color)
 
-scale_slider_ax = fig.add_axes([0.15, 0.22, 0.65, 0.03], facecolor=axis_color)
+scale_slider_ax = fig.add_axes([0.12, 0.22, 0.65, 0.03], facecolor=axis_color)
 scale_slider = Slider(
     scale_slider_ax, "Scale", 1.0, 20.0, valinit=scale, color=slider_color
 )
 
-points_slider_ax = fig.add_axes([0.15, 0.17, 0.65, 0.03], facecolor=axis_color)
+points_slider_ax = fig.add_axes([0.12, 0.17, 0.65, 0.03], facecolor=axis_color)
 points_slider = Slider(
     points_slider_ax, "Points", 3, 10, valinit=points, valfmt="%d", color=slider_color
 )
 
-seeder_slider_ax = fig.add_axes([0.15, 0.12, 0.65, 0.03], facecolor=axis_color)
+seeder_slider_ax = fig.add_axes([0.12, 0.12, 0.65, 0.03], facecolor=axis_color)
 seeder_slider = Slider(
     seeder_slider_ax, "Seed", 1, 100, valinit=seeder, valfmt="%d", color=slider_color
 )
 
-cluster_limit_slider_ax = fig.add_axes([0.15, 0.07, 0.65, 0.03], facecolor=axis_color)
+cluster_limit_slider_ax = fig.add_axes([0.12, 0.07, 0.65, 0.03], facecolor=axis_color)
 cluster_limit_slider = RangeSlider(
     cluster_limit_slider_ax,
     "Cluster Count",
@@ -466,7 +466,7 @@ update_button.on_clicked(update_on_clicked)
 
 # -------------------------------------------------------------------- #
 
-undo_button_ax = fig.add_axes([0.885, 0.60, 0.05, 0.06])
+undo_button_ax = fig.add_axes([0.875, 0.50, 0.05, 0.06])
 undo_button = Button(
     undo_button_ax, "", image=undo_asset, color="#aee3f2", hovercolor="#85cade"
 )
