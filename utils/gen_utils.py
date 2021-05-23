@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import random
-
 import numpy as np
 
 
@@ -39,3 +38,4 @@ def init_index_gen(fg_list, n_chunks):
         for i in range(n_chunks)
     )
     return [random.choice(ck) for ck in chunks]
+    

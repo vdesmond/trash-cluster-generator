@@ -5,6 +5,7 @@ import random
 import time
 import traceback
 from collections import deque
+from typing import Counter
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
@@ -14,10 +15,19 @@ from PIL import Image
 
 from .gen_utils import edgecrop, init_index_gen, translate_offset
 
-foreground_full_list = glob.glob(os.getcwd() + "/foregrounds/*")
+fg_path = os.getcwd() + '/foregrounds'    
+foreground_full_list = []
+
+for sub_folder in sorted(os.listdir(fg_path)):
+    print(sub_folder)
+    path = os.path.join(fg_path, sub_folder)
+    files = os.listdir(path)
+    files_path = [os.path.join(path, file) for file in files]
+    foreground_full_list.append(files_path)
+
+class_weights = (0.5, 0.25, 0.25)
 
 # ? Beach, Other Background, Glass, Metal, Plastic
-
 cmp = matplotlib.colors.ListedColormap(
     [
         "tan",
@@ -42,7 +52,6 @@ history = deque()
 
 
 def foregroundAug(foreground):
-    # ! add scale
     # Random rotation, zoom, translation
     angle = np.random.randint(-10, 10) * (np.pi / 180.0)  # Convert to radians
     zoom = np.random.random() * 0.2 + 0.1  # Zoom in range [0.1,0.3)
@@ -155,11 +164,12 @@ def generate_cluster(
     if background is None:
         return None, None, None, None
 
-    # Cluster limits
+    # ? Cluster limits
     cluster_low_limit, cluster_high_limit = climit
-    foreground_list = random.sample(
-        foreground_full_list, random.randint(cluster_low_limit, cluster_high_limit)
-    )
+
+    # ? Get foregrounds
+    fg_sampler = np.random.choice(len(class_weights),random.randint(cluster_low_limit, cluster_high_limit), p=class_weights)
+    foreground_list = [random.choice(foreground_full_list[c]) for c in fg_sampler]
 
     classes_list = [x.rsplit("_", 1)[0][-1] for x in foreground_list]
     classes_list = [int(i) for i in classes_list]
