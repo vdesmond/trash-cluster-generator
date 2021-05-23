@@ -19,13 +19,12 @@ fg_path = os.getcwd() + '/foregrounds'
 foreground_full_list = []
 
 for sub_folder in sorted(os.listdir(fg_path)):
-    print(sub_folder)
     path = os.path.join(fg_path, sub_folder)
     files = os.listdir(path)
     files_path = [os.path.join(path, file) for file in files]
     foreground_full_list.append(files_path)
 
-class_weights = (0.5, 0.25, 0.25)
+class_weights = (0.5, 0.3, 0.2)
 
 # ? Beach, Other Background, Glass, Metal, Plastic
 cmp = matplotlib.colors.ListedColormap(
@@ -169,6 +168,7 @@ def generate_cluster(
 
     # ? Get foregrounds
     fg_sampler = np.random.choice(len(class_weights),random.randint(cluster_low_limit, cluster_high_limit), p=class_weights)
+    print(fg_sampler)
     foreground_list = [random.choice(foreground_full_list[c]) for c in fg_sampler]
 
     classes_list = [x.rsplit("_", 1)[0][-1] for x in foreground_list]

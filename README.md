@@ -70,13 +70,15 @@ The foregrounds are mainly trash images collected from [trashnet](https://github
 
 ### Changes in code:
 
-Change the dimensions accroding to your background images [here](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/957010ad59a85ac4de52534f87f9e11c7248c1a4/tcg.py#L29-L30)
+- Change the dimensions accroding to your background images [here](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/957010ad59a85ac4de52534f87f9e11c7248c1a4/tcg.py#L29-L30).
 
-Change the colors to be set in RGB labels [here](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/8e9d96bd70987f2f95fcb5ef0f05371dc4f73a47/utils/generator.py#L23-L27) according to the number of classes and their types. Also change [this line](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/8e9d96bd70987f2f95fcb5ef0f05371dc4f73a47/utils/generator.py#L304) to the number of classes.
+- Change the colors to be set in RGB labels [here](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/8e9d96bd70987f2f95fcb5ef0f05371dc4f73a47/utils/generator.py#L23-L27) according to the number of classes and their types. Also change [this line](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/8e9d96bd70987f2f95fcb5ef0f05371dc4f73a47/utils/generator.py#L304) to the number of classes.
 
-Change the classes (and other params) in this [dict](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/957010ad59a85ac4de52534f87f9e11c7248c1a4/tcg.py#L89), which shows the count of each class for a particular image. See [Indicators](#indicators) for more.
+- Change the classes (and other params) in this [dict](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/957010ad59a85ac4de52534f87f9e11c7248c1a4/tcg.py#L89), which shows the count of each class for a particular image. See [Indicators](#indicators) for more.
 
-Tweak the augmentation parameters for foregrounds [here](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/8e9d96bd70987f2f95fcb5ef0f05371dc4f73a47/utils/generator.py#L47-L58).
+- Tweak the augmentation parameters for foregrounds [here](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/8e9d96bd70987f2f95fcb5ef0f05371dc4f73a47/utils/generator.py#L47-L58).
+
+- Change the approximate distribution of foregrounds per each class [here](https://github.com/Vignesh-Desmond/trash-cluster-generator/blob/ca8b8fbc2757daf3512276fe06251364f1f04633/utils/generator.py#L28) 
 
 These are the minimal changes to be done. However you can modify the code extensively to suit your needs.
 
