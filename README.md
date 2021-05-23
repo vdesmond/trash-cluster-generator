@@ -123,7 +123,7 @@ There are 8 sliders in total, out of which first seven controls the closed curve
     <br>
 </p>
 
-*Points*: The number of random points to use. The minimum number of points is 3. The more points you use, the more feature rich the shapes can become; at the risk of creating overlaps or loops in the curve.
+*Points*: The number of control points (Used to determine the nature of the nature of the Bezier Curve) to use. The minimum number of points is 3. The more points you use, the more feature rich the shapes can become; at the risk of creating overlaps or loops in the curve.
 
 <p align="center">
         <img src="docs/points.gif" alt="Edgy">
