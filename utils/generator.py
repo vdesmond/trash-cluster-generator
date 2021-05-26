@@ -168,7 +168,6 @@ def generate_cluster(
 
     # ? Get foregrounds
     fg_sampler = np.random.choice(len(class_weights),random.randint(cluster_low_limit, cluster_high_limit), p=class_weights)
-    print(fg_sampler)
     foreground_list = [random.choice(foreground_full_list[c]) for c in fg_sampler]
 
     classes_list = [x.rsplit("_", 1)[0][-1] for x in foreground_list]
