@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Button, RangeSlider, Slider
 
-from utils.bezier import *
+from utils.bezier import get_random_points, get_bezier_curve
 from utils.cluster_error import (ClusterNotGeneratedError,
                                  OutOfBoundsClusterError, UndoError)
 from utils.generator import (generate_cluster, save_generate, undo_func,
@@ -29,13 +29,14 @@ matplotlib.use("Qt5Agg")
 
 class TCG(object):
 
+    # @profile
     def __init__(self):
 
-        dim_x = 1280                            #* Horizonal pixel dimension
-        dim_y = 720                             #* Vertical pixel dimension
-        limits = [-5, 15]                       #* Curve View axis limits
-        extent = limits * 2
-        aspect_ratio = dim_x / dim_y
+        self.dim_x = 1280                            #* Horizonal pixel dimension
+        self.dim_y = 720                             #* Vertical pixel dimension
+        self.limits = [-5, 15]                       #* Curve View axis limits
+        extent = self.limits * 2
+        aspect_ratio = self.dim_x / self.dim_y
         bg_path = "./bg_images/"
         self.bg_list = [bg_path + s for s in os.listdir(bg_path)]
 
@@ -78,8 +79,8 @@ class TCG(object):
         self.centre = np.array([(np.max(self.x) + np.min(self.x)) / 2, (np.max(self.y) + np.min(self.y)) / 2])
         self.a_new = np.append(self.a, [self.centre], axis=0)
 
-        self.ax_bez.set_xlim(limits)
-        self.ax_bez.set_ylim(limits)
+        self.ax_bez.set_xlim(self.limits)
+        self.ax_bez.set_ylim(self.limits)
 
         #? Curve View Image handler
         self.bezier_handler = self.ax_bez.imshow(
@@ -103,16 +104,17 @@ class TCG(object):
         #? State Indicator Text handler
         self.text_handler = plt.figtext(0.88, 0.70, " Ready ", fontsize=14, backgroundcolor="#a3be8c")
 
-        #? Class distribution indicator text handlers
-        class_dict = {"G:": (0.86,"#bdae93"), "M:": (0.901,"#81a1c1"), "P:": (0.942,"#b48ead")}
+        #? Class distribution and its indicator text handlers
+        self.class_dict = {"G:": (0.86,"#bdae93"), "M:": (0.901,"#81a1c1"), "P:": (0.942,"#b48ead")}
         self.class_handlers = []
-        for (cname, textarg) in class_dict.items():
+        self.class_count = Counter()
+        for (cname, textarg) in self.class_dict.items():
             self.class_handlers.append(plt.figtext(textarg[0], 0.80, cname+"0".rjust(3), fontsize=10, backgroundcolor=textarg[1]))
 
-        #? Saved image count text handler
-        count = len([f for f in os.listdir(".") if f.startswith("label_")])
+        #? Saved image count and its indicator text handler
+        self.count = len([f for f in os.listdir(".") if f.startswith("label_")])
         self.count_handler = plt.figtext(
-            0.86, 0.76, f"Generated images: {count}", fontsize=10, backgroundcolor="#cf9f91"
+            0.86, 0.76, f"Generated images: {self.count}", fontsize=10, backgroundcolor="#cf9f91"
         )
 
         undo_asset = plt.imread("./assets/undo.png")
@@ -203,23 +205,24 @@ class TCG(object):
         self.cluster_limit_slider.on_changed(self.sliders_on_changed)
 
         #? Button event triggers
-        # self.save_button.on_clicked(self.save_button_on_clicked)
-        # self.save_button.on_clicked(self.sliders_on_changed)
-        # self.reset_button.on_clicked(self.reset_button_on_clicked)
-        # self.reset_button.on_clicked(self.sliders_on_changed)
-        # self.background_button.on_clicked(self.background_button_on_clicked)
-        # self.background_button.on_clicked(self.sliders_on_changed)
-        # self.generate_button.on_clicked(self.sliders_on_changed)
-        # self.generate_button.on_clicked(self.generate_button_on_clicked)
-        # self.add_new_button.on_clicked(self.sliders_on_changed)
-        # self.add_new_button.on_clicked(self.add_new_button_on_clicked)
-        # self.update_button.on_clicked(self.sliders_on_changed)
-        # self.update_button.on_clicked(self.update_on_clicked)
-        # self.undo_button.on_clicked(self.sliders_on_changed)
-        # self.undo_button.on_clicked(self.undo_on_clicked)
+        self.save_button.on_clicked(self.save_button_on_clicked)
+        self.save_button.on_clicked(self.sliders_on_changed)
+        self.reset_button.on_clicked(self.reset_button_on_clicked)
+        self.reset_button.on_clicked(self.sliders_on_changed)
+        self.background_button.on_clicked(self.background_button_on_clicked)
+        self.background_button.on_clicked(self.sliders_on_changed)
+        self.generate_button.on_clicked(self.sliders_on_changed)
+        self.generate_button.on_clicked(self.generate_button_on_clicked)
+        self.add_new_button.on_clicked(self.sliders_on_changed)
+        self.add_new_button.on_clicked(self.add_new_button_on_clicked)
+        self.update_button.on_clicked(self.sliders_on_changed)
+        self.update_button.on_clicked(self.update_on_clicked)
+        self.undo_button.on_clicked(self.sliders_on_changed)
+        self.undo_button.on_clicked(self.undo_on_clicked)
 
         plt.show()
-
+    
+    # @profile
     def sliders_on_changed(self, val):
 
         self.cluster_limit = (int(self.cluster_limit_slider.val[0]), int(self.cluster_limit_slider.val[1]))
@@ -236,8 +239,274 @@ class TCG(object):
         self.bezier_curve.set_data(self.x, self.y)
         self.scatter_points.set_offsets(self.a_new)
         self.fig.canvas.draw_idle()
+    
+    # @profile
+    def save_button_on_clicked(self, mouse_event):
+        try:
 
-  
+            if self.cluster_image is None:
+                raise ClusterNotGeneratedError
+
+            save_generate(self.cluster_image, self.cluster_mask, self.cluster_pil)
+            self.cluster_image = None
+            self.cluster_mask = None
+            self.cluster_pil = None
+            self.cache = None
+
+        except ClusterNotGeneratedError:
+            logger.warning("Generate cluster before saving.")
+            self.text_handler.set_text("Generate new")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#ede5c0")
+        except Exception:
+            logger.error(traceback.print_exc())
+            self.text_handler.set_text("Error. See logs")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#bf616a")
+        else:
+            logger.debug("Saved successfully.")
+            self.text_handler.set_text("Saved")
+            self.text_handler.set_position((0.89, 0.70))
+            self.text_handler.set_backgroundcolor("#a3be8c")
+            self.count += 1
+            self.count_handler.set_text(f"Generated images: {self.count}")
+
+    # @profile
+    def reset_button_on_clicked(self, mouse_event):
+        try:
+            self.rad_slider.reset()
+            self.edgy_slider.reset()
+            self.c0_slider.reset()
+            self.c1_slider.reset()
+            self.scale_slider.reset()
+            self.points_slider.reset()
+            self.seeder_slider.reset()
+            self.cluster_limit_slider.set_val((3, 7))
+            self.bg_index = 0
+
+            self.cluster_image = None
+            self.cluster_mask = None
+            self.cluster_pil = None
+
+            self.cluster_handler.set_data(np.flipud(np.array(plt.imread(self.bg_list[0]))))
+            self.bezier_handler.set_data(plt.imread(self.bg_list[self.bg_index]))
+
+        except Exception:
+            logger.error(traceback.print_exc())
+            self.text_handler.set_text("Error. See logs")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#bf616a")
+        else:
+            logger.info("Reset state.")
+            self.text_handler.set_text("Reset")
+            self.text_handler.set_position((0.89, 0.70))
+            self.text_handler.set_backgroundcolor("#a3be8c")
+            for ind, cname in enumerate(self.class_dict):
+                self.class_handlers[ind].set_text(cname + "0".rjust(3))
+
+    # @profile
+    def background_button_on_clicked(self, mouse_event):
+        try:
+            self.bg_index = (self.bg_index + 1) % len(self.bg_list)
+            self.bezier_handler.set_data(plt.imread((self.bg_list[self.bg_index])))
+        except Exception:
+            logger.error(traceback.print_exc())
+            self.text_handler.set_text("Error. See logs")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#bf616a")
+        else:
+            logger.info("Changed background.")
+            self.text_handler.set_text("Changed")
+            self.text_handler.set_position((0.88, 0.70))
+            self.text_handler.set_backgroundcolor("#a3be8c")
+
+    # @profile
+    def generate_button_on_clicked(self, mouse_event):
+        try:
+            bg_image = np.array(plt.imread(self.bg_list[self.bg_index]))
+            bg_mask = np.array(
+                plt.imread(
+                    self.bg_list[self.bg_index].replace("images", "labels").replace("jpeg", "png")
+                )
+            )
+            params = list(zip(self.x, self.y))
+            params.append(tuple(self.centre))
+            self.cluster_image, self.cluster_mask, self.cluster_pil, self.cache = generate_cluster(
+                bg_image, bg_mask, params, self.cluster_limit, self.limits, (self.dim_x, self.dim_y)
+            )
+
+            if not self.cluster_image:
+                raise OutOfBoundsClusterError
+
+            self.cluster_handler.set_data(np.flipud(self.cluster_image))
+
+        except OutOfBoundsClusterError:
+            logger.warning("Out of Bounds. Retry")
+            self.text_handler.set_text("Out of Bounds")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#ede5c0")
+
+        except Exception:
+            logger.error(traceback.print_exc())
+            self.text_handler.set_text("Error. See logs")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#bf616a")
+
+        else:
+            logger.info("Generated new cluster.")
+            self.text_handler.set_text("Generated")
+            self.text_handler.set_position((0.88, 0.70))
+            self.text_handler.set_backgroundcolor("#a3be8c")
+            
+            self.class_count = Counter(self.cache[2])
+            for ind, cname in enumerate(self.class_dict):
+                self.class_handlers[ind].set_text(cname + str(self.class_count[ind+3]).rjust(3))
+
+    # @profile
+    def add_new_button_on_clicked(self, mouse_event):
+        try:
+
+            params = list(zip(self.x, self.y))
+            params.append(tuple(self.centre))
+
+            if self.cluster_image is None:
+                raise ClusterNotGeneratedError
+
+            self.cluster_image, self.cluster_mask, self.cluster_pil, self.cache = generate_cluster(
+                np.array(self.cluster_image),
+                self.cluster_mask,
+                params,
+                self.cluster_limit,
+                self.limits,
+                (self.dim_x, self.dim_y),
+                new_cluster=False,
+            )
+
+            if np.array_equal(self.cluster_image, self.cache[0]):
+                raise OutOfBoundsClusterError
+
+            self.cluster_handler.set_data(np.flipud(self.cluster_image))
+
+        except ClusterNotGeneratedError:
+            logger.warning("Generate cluster before adding a new one.")
+            self.text_handler.set_text("Generate new")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#ede5c0")
+
+        except OutOfBoundsClusterError:
+            logger.warning("Out of Bounds. Retry")
+            self.text_handler.set_text("Out of Bounds")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#ede5c0")
+
+        except Exception:
+            logger.error(traceback.print_exc())
+            self.text_handler.set_text("Error. See logs.")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#bf616a")
+
+        else:
+            logger.info("Added cluster.")
+            self.text_handler.set_text("Added")
+            self.text_handler.set_position((0.89, 0.70))
+            self.text_handler.set_backgroundcolor("#a3be8c")
+
+            self.class_count += Counter(self.cache[2])
+            for ind, cname in enumerate(self.class_dict):
+                self.class_handlers[ind].set_text(cname + str(self.class_count[ind+3]).rjust(3))
+
+    # @profile
+    def update_on_clicked(self, mouse_event):
+        try:
+            params = list(zip(self.x, self.y))
+            params.append(tuple(self.centre))
+
+            if self.cluster_image is None:
+                raise ClusterNotGeneratedError
+
+            bg_mask = np.array(
+                plt.imread(
+                    self.bg_list[self.bg_index].replace("images", "labels").replace("jpeg", "png")
+                )
+            )
+
+            if np.array_equal(bg_mask, self.cache[1]):
+                new_cluster = True
+            else:
+                new_cluster = False
+
+            # old_class_list = cache[2][:]
+
+            self.cluster_image, self.cluster_mask, self.cluster_pil, self.cache = update_cluster(
+                *self.cache, params, self.limits, (self.dim_x, self.dim_y), new_cluster
+            )
+
+            if np.array_equal(self.cluster_image, self.cache[0]):
+                raise OutOfBoundsClusterError
+
+            self.cluster_handler.set_data(np.flipud(self.cluster_image))
+
+        except ClusterNotGeneratedError:
+            logger.warning("Generate cluster before updating.")
+            self.text_handler.set_text("Generate new")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#ede5c0")
+
+        except OutOfBoundsClusterError:
+            logger.warning("Out of Bounds. Retry")
+            self.text_handler.set_text("Out of Bounds")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#ede5c0")
+
+        except Exception:
+            logger.error(traceback.print_exc())
+            self.text_handler.set_text("Error. See logs")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#bf616a")
+
+        else:
+            logger.info("Updated cluster.")
+            self.text_handler.set_text("Updated")
+            self.text_handler.set_position((0.88, 0.70))
+            self.text_handler.set_backgroundcolor("#a3be8c")
+
+    # @profile
+    def undo_on_clicked(self, mouse_event):
+        try:
+
+            if self.cluster_image is None:
+                raise UndoError
+
+            self.cluster_image, self.cluster_mask, self.cluster_pil, self.cache = undo_func()
+
+            if self.cache is None:
+                raise UndoError
+
+            self.cluster_handler.set_data(np.flipud(self.cluster_image))
+
+        except UndoError:
+            logger.warning("Cannot undo as there is no previous state.")
+            self.text_handler.set_text("Cannot undo")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#ede5c0")
+
+        except Exception:
+            logger.error(traceback.print_exc())
+            self.text_handler.set_text("Error. See logs")
+            self.text_handler.set_position((0.87, 0.70))
+            self.text_handler.set_backgroundcolor("#bf616a")
+
+        else:
+            logger.info("Cluster undone.")
+            self.text_handler.set_text("Undone")
+            self.text_handler.set_position((0.88, 0.70))
+            self.text_handler.set_backgroundcolor("#a3be8c")
+        
+            self.class_count -= Counter(self.cache[2])
+            for ind, cname in enumerate(self.class_dict):
+                self.class_handlers[ind].set_text(cname + str(self.class_count[ind+3]).rjust(3))
+
+
 TCG()
 
 
