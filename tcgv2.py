@@ -31,9 +31,9 @@ class TCG(object):
 
     def __init__(self):
 
-        dim_x = 1280
-        dim_y = 720
-        limits = [-5, 15]
+        dim_x = 1280                            #* Horizonal pixel dimension
+        dim_y = 720                             #* Vertical pixel dimension
+        limits = [-5, 15]                       #* Curve View axis limits
         extent = limits * 2
         aspect_ratio = dim_x / dim_y
         bg_path = "./bg_images/"
@@ -117,9 +117,84 @@ class TCG(object):
 
         undo_asset = plt.imread("./assets/undo.png")
 
+        #? Sliders
 
+        rad_slider_ax = self.fig.add_axes([0.12, 0.42, 0.65, 0.03], facecolor=axis_color)
+        self.rad_slider = Slider(rad_slider_ax, "Radius", 0.0, 1.0, valinit=self.rad, color=slider_color)
 
+        edgy_slider_ax = self.fig.add_axes([0.12, 0.37, 0.65, 0.03], facecolor=axis_color)
+        self.edgy_slider = Slider(
+            edgy_slider_ax, "Edginess", 0.0, 5.0, valinit=self.edgy, color=slider_color
+        )
 
+        c0_slider_ax = self.fig.add_axes([0.12, 0.32, 0.65, 0.03], facecolor=axis_color)
+        self.c0_slider = Slider(c0_slider_ax, "Move X", -7.0, 16.0, valinit=self.c[0], color=slider_color)
+
+        c1_slider_ax = self.fig.add_axes([0.12, 0.27, 0.65, 0.03], facecolor=axis_color)
+        self.c1_slider = Slider(c1_slider_ax, "Move Y", -7.0, 16.0, valinit=self.c[1], color=slider_color)
+
+        scale_slider_ax = self.fig.add_axes([0.12, 0.22, 0.65, 0.03], facecolor=axis_color)
+        self.scale_slider = Slider(
+            scale_slider_ax, "Scale", 1.0, 20.0, valinit=self.scale, color=slider_color
+        )
+
+        points_slider_ax = self.fig.add_axes([0.12, 0.17, 0.65, 0.03], facecolor=axis_color)
+        self.points_slider = Slider(
+            points_slider_ax, "Points", 3, 10, valinit=self.points, valfmt="%d", color=slider_color
+        )
+
+        seeder_slider_ax = self.fig.add_axes([0.12, 0.12, 0.65, 0.03], facecolor=axis_color)
+        self.seeder_slider = Slider(
+            seeder_slider_ax, "Seed", 1, 100, valinit=self.seeder, valfmt="%d", color=slider_color
+        )
+
+        cluster_limit_slider_ax = self.fig.add_axes([0.12, 0.07, 0.65, 0.03], facecolor=axis_color)
+        self.cluster_limit_slider = RangeSlider(
+            cluster_limit_slider_ax,
+            "Cluster Count",
+            1,
+            20,
+            valinit=self.cluster_limit,
+            valfmt="%d",
+            color=slider_color,
+        )
+
+        #? Buttons
+
+        save_button_ax = self.fig.add_axes([0.85, 0.05, 0.1, 0.06])
+        self.save_button = Button(save_button_ax, "Save", color="#aee3f2", hovercolor="#85cade")
+
+        reset_button_ax = self.fig.add_axes([0.85, 0.12, 0.1, 0.06])
+        self.reset_button = Button(reset_button_ax, "Reset", color="#aee3f2", hovercolor="#85cade")
+
+        background_button_ax = self.fig.add_axes([0.85, 0.19, 0.1, 0.06])
+        self.background_button = Button(
+            background_button_ax, "Background", color="#aee3f2", hovercolor="#85cade"
+        )
+
+        generate_button_ax = self.fig.add_axes([0.85, 0.26, 0.1, 0.06])
+        self.generate_button = Button(
+            generate_button_ax, "Generate", color="#aee3f2", hovercolor="#85cade"
+        )
+
+        add_new_button_ax = self.fig.add_axes([0.85, 0.33, 0.1, 0.06])
+        self.add_new_button = Button(
+            add_new_button_ax, "Add Cluster", color="#aee3f2", hovercolor="#85cade"
+        )
+
+        update_button_ax = self.fig.add_axes([0.85, 0.40, 0.1, 0.06])
+        self.update_button = Button(
+            update_button_ax, "Update", color="#aee3f2", hovercolor="#85cade"
+        )
+
+        undo_button_ax = self.fig.add_axes([0.875, 0.50, 0.05, 0.06])
+        self.undo_button = Button(
+            undo_button_ax, "", image=undo_asset, color="#aee3f2", hovercolor="#85cade"
+        )
+
+        plt.show()
+
+TCG()
 
 
 
