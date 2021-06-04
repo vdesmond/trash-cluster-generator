@@ -192,8 +192,52 @@ class TCG(object):
             undo_button_ax, "", image=undo_asset, color="#aee3f2", hovercolor="#85cade"
         )
 
+        #? Slider event triggers
+        self.rad_slider.on_changed(self.sliders_on_changed)
+        self.edgy_slider.on_changed(self.sliders_on_changed)
+        self.c0_slider.on_changed(self.sliders_on_changed)
+        self.c1_slider.on_changed(self.sliders_on_changed)
+        self.scale_slider.on_changed(self.sliders_on_changed)
+        self.points_slider.on_changed(self.sliders_on_changed)
+        self.seeder_slider.on_changed(self.sliders_on_changed)
+        self.cluster_limit_slider.on_changed(self.sliders_on_changed)
+
+        #? Button event triggers
+        # self.save_button.on_clicked(self.save_button_on_clicked)
+        # self.save_button.on_clicked(self.sliders_on_changed)
+        # self.reset_button.on_clicked(self.reset_button_on_clicked)
+        # self.reset_button.on_clicked(self.sliders_on_changed)
+        # self.background_button.on_clicked(self.background_button_on_clicked)
+        # self.background_button.on_clicked(self.sliders_on_changed)
+        # self.generate_button.on_clicked(self.sliders_on_changed)
+        # self.generate_button.on_clicked(self.generate_button_on_clicked)
+        # self.add_new_button.on_clicked(self.sliders_on_changed)
+        # self.add_new_button.on_clicked(self.add_new_button_on_clicked)
+        # self.update_button.on_clicked(self.sliders_on_changed)
+        # self.update_button.on_clicked(self.update_on_clicked)
+        # self.undo_button.on_clicked(self.sliders_on_changed)
+        # self.undo_button.on_clicked(self.undo_on_clicked)
+
         plt.show()
 
+    def sliders_on_changed(self, val):
+
+        self.cluster_limit = (int(self.cluster_limit_slider.val[0]), int(self.cluster_limit_slider.val[1]))
+        self.c = [self.c0_slider.val, self.c1_slider.val]
+        self.scale = self.scale_slider.val
+        self.a = (
+            get_random_points(int(self.seeder_slider.val), n=int(self.points_slider.val), scale=self.scale)
+            + self.c
+        )
+        self.x, self.y, _ = get_bezier_curve(self.a, rad=self.rad_slider.val, edgy=self.edgy_slider.val)
+        self.centre = np.array([(np.max(self.x) + np.min(self.x)) / 2, (np.max(self.y) + np.min(self.y)) / 2])
+        self.a_new = np.append(self.a, [self.centre], axis=0)
+
+        self.bezier_curve.set_data(self.x, self.y)
+        self.scatter_points.set_offsets(self.a_new)
+        self.fig.canvas.draw_idle()
+
+  
 TCG()
 
 
