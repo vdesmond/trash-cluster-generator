@@ -15,7 +15,7 @@ from PIL import Image
 
 from .gen_utils import edgecrop, init_index_gen, translate_offset
 
-fg_path = os.getcwd() + '/foregrounds'    
+fg_path = os.getcwd() + "/foregrounds"
 foreground_full_list = []
 
 for sub_folder in sorted(os.listdir(fg_path)):
@@ -35,7 +35,7 @@ cmp = matplotlib.colors.ListedColormap(
         "forestgreen",
         "blue",
     ]  # ? default colors
-) 
+)
 
 # cmp = matplotlib.colors.ListedColormap(
 #     [
@@ -167,7 +167,11 @@ def generate_cluster(
     cluster_low_limit, cluster_high_limit = climit
 
     # ? Get foregrounds
-    fg_sampler = np.random.choice(len(class_weights),random.randint(cluster_low_limit, cluster_high_limit), p=class_weights)
+    fg_sampler = np.random.choice(
+        len(class_weights),
+        random.randint(cluster_low_limit, cluster_high_limit),
+        p=class_weights,
+    )
     foreground_list = [random.choice(foreground_full_list[c]) for c in fg_sampler]
 
     classes_list = [x.rsplit("_", 1)[0][-1] for x in foreground_list]
