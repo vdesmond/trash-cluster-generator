@@ -3,21 +3,19 @@
 import logging
 import os
 import traceback
+from collections import Counter
 
 import coloredlogs
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Button, RangeSlider, Slider
 
-from utils.bezier import get_random_points, get_bezier_curve
-from utils.cluster_error import (
-    ClusterNotGeneratedError,
-    OutOfBoundsClusterError,
-    UndoError,
-)
-from utils.generator import generate_cluster, save_generate, undo_func, update_cluster
-
-from collections import Counter
+from utils.bezier import get_bezier_curve, get_random_points
+from utils.cluster_error import (ClusterNotGeneratedError,
+                                 OutOfBoundsClusterError, UndoError)
+from utils.generator import (generate_cluster, save_generate, undo_func,
+                             update_cluster)
 
 # ? Configure logging
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
@@ -25,12 +23,10 @@ logging.getLogger("PIL").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="DEBUG", fmt="%(asctime)s - %(message)s", datefmt="%H:%M:%S")
 
-import matplotlib
-
 matplotlib.use("Qt5Agg")
 
 
-class TCG(object):
+class TCG():
 
     # @profile
     def __init__(self):
@@ -292,7 +288,7 @@ class TCG(object):
         plt.show()
 
     # @profile
-    def curveplot(self, val):
+    def curveplot(self, _):
 
         self.cluster_limit = (
             int(self.cluster_limit_slider.val[0]),
@@ -324,7 +320,7 @@ class TCG(object):
         self.fig.canvas.draw_idle()
 
     # @profile
-    def save(self, mouse_event):
+    def save(self, _):
         try:
 
             if self.cluster_image is None:
@@ -355,7 +351,7 @@ class TCG(object):
             self.count_handler.set_text(f"Generated images: {self.count}")
 
     # @profile
-    def reset(self, mouse_event):
+    def reset(self, _):
         try:
             self.rad_slider.reset()
             self.edgy_slider.reset()
@@ -390,7 +386,7 @@ class TCG(object):
                 self.class_handlers[ind].set_text(cname + "0".rjust(3))
 
     # @profile
-    def background(self, mouse_event):
+    def background(self, _):
         try:
             self.bg_index = (self.bg_index + 1) % len(self.bg_list)
             self.bezier_handler.set_data(plt.imread((self.bg_list[self.bg_index])))
@@ -406,7 +402,7 @@ class TCG(object):
             self.text_handler.set_backgroundcolor("#a3be8c")
 
     # @profile
-    def generate(self, mouse_event):
+    def generate(self, _):
         try:
             bg_image = np.array(plt.imread(self.bg_list[self.bg_index]))
             bg_mask = np.array(
@@ -462,7 +458,7 @@ class TCG(object):
                 )
 
     # @profile
-    def add_new(self, mouse_event):
+    def add_new(self, _):
         try:
 
             params = list(zip(self.x, self.y))
@@ -522,7 +518,7 @@ class TCG(object):
                 )
 
     # @profile
-    def update(self, mouse_event):
+    def update(self, _):
         try:
             params = list(zip(self.x, self.y))
             params.append(tuple(self.centre))
@@ -584,7 +580,7 @@ class TCG(object):
             self.text_handler.set_backgroundcolor("#a3be8c")
 
     # @profile
-    def undo(self, mouse_event):
+    def undo(self, _):
         try:
 
             if self.cluster_image is None:

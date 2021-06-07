@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import glob
 import os
 import random
 import time
 import traceback
 from collections import deque
-from typing import Counter
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
@@ -218,13 +216,12 @@ def generate_cluster(
     except ValueError:
         if new_cluster:
             return None, None, None, None
-        else:
-            return (
+        return (
                 background,
                 background_mask,
                 Image.fromarray(background_mask),
                 cache_for_update,
-            )
+        )
 
     except Exception:
         traceback.print_exc()
